@@ -94,7 +94,6 @@ func MainHandler(res http.ResponseWriter, req *http.Request) {
 	if len(CompileErrors) > 0 {
 		res.Write(CompileErrors)
 	} else {
-		// TODO: Create proxy in main
 		Proxy.ServeHTTP(res, req)
 	}
 }
