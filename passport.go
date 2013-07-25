@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/codegangsta/cli"
 	"github.com/howeyc/fsnotify"
 	"io"
@@ -30,21 +31,26 @@ func main() {
 	app := cli.NewApp()
 	app.Name = "passport"
 	app.Usage = "a Go development server"
+	app.Flags = []cli.Flag{
+		cli.IntFlag{"p", 5678, "port to run passport on"},
+	}
 	app.Action = DefaultAction
 
 	app.Run(os.Args)
 }
 
 func DefaultAction(c *cli.Context) {
-  url, err := url.Parse("http://localhost:3000")
-  check(err)
-  Proxy = httputil.NewSingleHostReverseProxy(url)
+	url, err := url.Parse("http://localhost:3000")
+	check(err)
+	Proxy = httputil.NewSingleHostReverseProxy(url)
 
 	go watch()
 	go checkDirty()
 
 	http.HandleFunc("/", MainHandler)
-	err = http.ListenAndServe(":8080", nil)
+	port := c.GlobalInt("p")
+	log.Printf("listening on port %v", port)
+	err = http.ListenAndServe(fmt.Sprintf(":%v", port), nil)
 	check(err)
 }
 
