@@ -26,10 +26,10 @@ var (
 func main() {
 	// set up logs
 	log.SetFlags(0)
-	log.SetPrefix("[passport] ")
+	log.SetPrefix("[gin] ")
 
 	app := cli.NewApp()
-	app.Name = "passport"
+	app.Name = "gin"
 	app.Usage = "a Go development server"
 	app.Flags = []cli.Flag{
 		cli.IntFlag{"p", 5678, "port to run passport on"},
