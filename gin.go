@@ -14,6 +14,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -21,6 +22,7 @@ var (
 	CompileErrors []byte
 	Proxy         *httputil.ReverseProxy
 	Dirty         = true
+	once          sync.Once
 )
 
 func main() {
@@ -65,6 +67,8 @@ func checkDirty() {
 			}
 			command = run()
 			Dirty = false
+			time.Sleep(500 * time.Millisecond)
+			once = sync.Once{}
 		}
 		time.Sleep(100 * time.Millisecond)
 	}
@@ -86,7 +90,9 @@ func watch() {
 		select {
 		case ev := <-watcher.Event:
 			if ev.IsModify() && strings.HasSuffix(ev.Name, ".go") {
-				Dirty = true
+				once.Do(func() {
+					Dirty = true
+				})
 			}
 		case err := <-watcher.Error:
 			if err != nil {
