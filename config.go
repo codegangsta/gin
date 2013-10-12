@@ -6,13 +6,13 @@ import (
 	"os"
 )
 
-type ServerConfig struct {
+type AppConfig struct {
 	Port int `json:"port"`
 }
 
 type Config struct {
-	Port   int          `json:"port"`
-	Server ServerConfig `json:"server"`
+	Port int       `json:"port"`
+	App  AppConfig `json:"app"`
 }
 
 func LoadConfig(path string) (*Config, error) {
