@@ -19,7 +19,7 @@ func LoadConfig(path string) (*Config, error) {
 	configFile, err := os.Open(path)
 
 	if err != nil {
-		return nil, fmt.Errorf("Unable to read configuration file %s\n%s", path, err.Error())
+		return nil, fmt.Errorf("Unable to read configuration file %s", path)
 	}
 
 	config := new(Config)
@@ -27,7 +27,7 @@ func LoadConfig(path string) (*Config, error) {
 	decoder := json.NewDecoder(configFile)
 	err = decoder.Decode(&config)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to parse configuration file %s\n%s", path, err.Error())
+		return nil, fmt.Errorf("Unable to parse configuration file %s", path)
 	}
 
 	return config, nil
