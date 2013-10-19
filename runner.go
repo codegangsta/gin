@@ -28,15 +28,16 @@ func NewRunner(bin string) Runner {
 func (r *runner) Run() (*exec.Cmd, error) {
 	command := exec.Command(r.bin)
 	stdout, err := command.StdoutPipe()
-
-  if err != nil {
-    return command, err
-  }
+	if err != nil {
+		return command, err
+	}
 
 	err = command.Start()
+	if err != nil {
+		return command, err
+	}
 
-  go io.Copy(r.writer, stdout)
-
+	go io.Copy(r.writer, stdout)
 	return command, err
 }
 

@@ -41,5 +41,8 @@ func Test_Runner_SetWriter(t *testing.T) {
 }
 
 // func Test_Runner_ThrowingError
-// func Test_Runner_RestartingUpdatedBinary
+func Test_Runner_RestartingUpdatedBinary(t *testing.T) {
+
+}
+
 // func Test_Runner_NotRestartingSameBinary
