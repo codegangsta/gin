@@ -19,7 +19,7 @@ func Test_Runner_Run(t *testing.T) {
 
 	cmd, err := runner.Run()
 	expect(t, err, nil)
-	expect(t, cmd.Dir, "foobar")
+	expect(t, cmd.Process == nil, false)
 }
 
 // func Test_Runner_SettingEnvironment(t *testing.T) {

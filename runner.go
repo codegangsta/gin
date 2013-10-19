@@ -19,7 +19,11 @@ func NewRunner(bin string) Runner {
 }
 
 func (r *runner) Run() (*exec.Cmd, error) {
-	return nil, nil
+	command := exec.Command(r.bin)
+	//stdout, err := command.StdoutPipe()
+	err := command.Start()
+
+	return command, err
 }
 
 func (r *runner) Info() (os.FileInfo, error) {
