@@ -1,6 +1,8 @@
 package gin
 
 import (
+	"io"
+	"io/ioutil"
 	"os"
 	"os/exec"
 )
@@ -8,14 +10,19 @@ import (
 type Runner interface {
 	Run() (*exec.Cmd, error)
 	Info() (os.FileInfo, error)
+	SetWriter(io.Writer)
 }
 
 type runner struct {
-	bin string
+	bin    string
+	writer io.Writer
 }
 
 func NewRunner(bin string) Runner {
-	return &runner{bin: bin}
+	return &runner{
+		bin:    bin,
+		writer: ioutil.Discard,
+	}
 }
 
 func (r *runner) Run() (*exec.Cmd, error) {
@@ -28,4 +35,8 @@ func (r *runner) Run() (*exec.Cmd, error) {
 
 func (r *runner) Info() (os.FileInfo, error) {
 	return os.Stat(r.bin)
+}
+
+func (r *runner) SetWriter(writer io.Writer) {
+	r.writer = writer
 }

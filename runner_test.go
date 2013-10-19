@@ -1,6 +1,7 @@
 package gin_test
 
 import (
+	"bytes"
 	"github.com/codegangsta/gin"
 	"testing"
 )
@@ -25,7 +26,20 @@ func Test_Runner_Run(t *testing.T) {
 // func Test_Runner_SettingEnvironment(t *testing.T) {
 // }
 
-// func Test_Runner_WritingOutput
+func Test_Runner_SetWriter(t *testing.T) {
+	buff := bytes.NewBufferString("")
+	expect(t, buff.String(), "")
+
+	bin := "test_fixtures/build_success/build_success"
+	runner := gin.NewRunner(bin)
+	runner.SetWriter(buff)
+
+	cmd, err := runner.Run()
+	cmd.Wait()
+	expect(t, err, nil)
+	expect(t, buff.String(), "foo bar")
+}
+
 // func Test_Runner_ThrowingError
 // func Test_Runner_RestartingUpdatedBinary
 // func Test_Runner_NotRestartingSameBinary
