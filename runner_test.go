@@ -7,15 +7,15 @@ import (
 )
 
 func Test_NewRunner(t *testing.T) {
-	bin := "test_fixtures/build_success/build_success"
+	bin := "test_fixtures/writing_output"
 	runner := gin.NewRunner(bin)
 
 	fi, _ := runner.Info()
-	expect(t, fi.Name(), "build_success")
+	expect(t, fi.Name(), "writing_output")
 }
 
 func Test_Runner_Run(t *testing.T) {
-	bin := "test_fixtures/build_success/build_success"
+	bin := "test_fixtures/writing_output"
 	runner := gin.NewRunner(bin)
 
 	cmd, err := runner.Run()
@@ -30,14 +30,14 @@ func Test_Runner_SetWriter(t *testing.T) {
 	buff := bytes.NewBufferString("")
 	expect(t, buff.String(), "")
 
-	bin := "test_fixtures/build_success/build_success"
+	bin := "test_fixtures/writing_output"
 	runner := gin.NewRunner(bin)
 	runner.SetWriter(buff)
 
 	cmd, err := runner.Run()
 	cmd.Wait()
 	expect(t, err, nil)
-	expect(t, buff.String(), "foo bar")
+	expect(t, buff.String(), "Hello world\n")
 }
 
 // func Test_Runner_ThrowingError
