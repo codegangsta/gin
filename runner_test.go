@@ -28,3 +28,4 @@ func Test_Runner_Run(t *testing.T) {
 // func Test_Runner_WritingOutput
 // func Test_Runner_ThrowingError
 // func Test_Runner_RestartingUpdatedBinary
+// func Test_Runner_NotRestartingSameBinary
