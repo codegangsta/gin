@@ -63,6 +63,3 @@ func Test_Runner_SetWriter(t *testing.T) {
 	expect(t, err, nil)
 	expect(t, buff.String(), "Hello world\n")
 }
-
-func Test_Runner_RestartingUpdatedBinary(t *testing.T) {
-}
