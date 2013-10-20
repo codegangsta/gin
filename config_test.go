@@ -10,7 +10,7 @@ func Test_LoadConfig(t *testing.T) {
 
 	expect(t, err, nil)
 	expect(t, config.Port, 5678)
-  expect(t, config.ProxyTo, "http://localhost:3000")
+	expect(t, config.ProxyTo, "http://localhost:3000")
 }
 
 func Test_LoadConfig_WithNonExistantFile(t *testing.T) {
