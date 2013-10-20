@@ -1,4 +1,4 @@
 {
   "port": 5678,
-  "proxy_port": 3000
+  "proxy_to": "http://localhost:3000"
 }
