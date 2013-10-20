@@ -32,8 +32,7 @@ func NewRunner(bin string) Runner {
 
 func (r *runner) Run() (*exec.Cmd, error) {
 	if r.needsRefresh() {
-    println("refreshing")
-		// r.Kill()
+		r.Kill()
 	}
 
 	if r.command == nil {
@@ -54,7 +53,6 @@ func (r *runner) SetWriter(writer io.Writer) {
 
 func (r *runner) Kill() error {
 	if r.command != nil && r.command.Process != nil {
-		//r.command.Process.Release()
 		r.command.Process.Kill()
 		r.command = nil
 	}
