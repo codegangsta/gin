@@ -30,9 +30,10 @@ func NewRunner(bin string) Runner {
 }
 
 func (r *runner) Run() (*exec.Cmd, error) {
-	// if r.needsRefresh() {
-	// 	r.Kill()
-	// }
+	if r.needsRefresh() {
+    println("refreshing")
+		// r.Kill()
+	}
 
 	if r.command == nil {
 		err := r.runBin()
@@ -76,4 +77,13 @@ func (r *runner) runBin() error {
 
 	go io.Copy(r.writer, stdout)
 	return nil
+}
+
+func (r *runner) needsRefresh() bool {
+  _, err := r.Info()
+  if err != nil {
+    return false
+  } else {
+    return true
+  }
 }
