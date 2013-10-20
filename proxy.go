@@ -11,10 +11,15 @@ import (
 type Proxy struct {
 	listener net.Listener
 	proxy    *httputil.ReverseProxy
+	builder  Builder
+	runner   Runner
 }
 
 func NewProxy(builder Builder, runner Runner) *Proxy {
-	return &Proxy{}
+	return &Proxy{
+		builder: builder,
+		runner:  runner,
+	}
 }
 
 func (p *Proxy) Run(config *Config) error {
@@ -40,5 +45,10 @@ func (p *Proxy) Close() error {
 }
 
 func (p *Proxy) defaultHandler(res http.ResponseWriter, req *http.Request) {
-	p.proxy.ServeHTTP(res, req)
+	errors := p.builder.Errors()
+	if len(errors) > 0 {
+		res.Write([]byte(errors))
+	} else {
+		p.proxy.ServeHTTP(res, req)
+	}
 }

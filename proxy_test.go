@@ -55,3 +55,26 @@ func Test_Proxying(t *testing.T) {
 	res.Body.Close()
 	expect(t, fmt.Sprintf("%s", greeting), "Hello world\n")
 }
+
+func Test_Proxying_Build_Errors(t *testing.T) {
+	builder := NewMockBuilder()
+	builder.MockErrors = "Foo bar here are some errors"
+	runner := NewMockRunner()
+	proxy := gin.NewProxy(builder, runner)
+
+	config := &gin.Config{
+		Port:    5678,
+		ProxyTo: "http://localhost:3000",
+	}
+
+	err := proxy.Run(config)
+	defer proxy.Close()
+	expect(t, err, nil)
+
+	res, err := http.Get("http://localhost:5678")
+	expect(t, err, nil)
+	expect(t, res == nil, false)
+	errors, err := ioutil.ReadAll(res.Body)
+	res.Body.Close()
+	expect(t, fmt.Sprintf("%s", errors), "Foo bar here are some errors")
+}
