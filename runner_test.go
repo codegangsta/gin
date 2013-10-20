@@ -40,9 +40,9 @@ func Test_Runner_Kill(t *testing.T) {
   // time.Sleep(time.Second*1)
   // os.Chtimes(bin, time.Now(), time.Now())
 
-	// cmd3, err := runner.Run()
-	// expect(t, err, nil)
-	// refute(t, cmd1, cmd3)
+	cmd3, err := runner.Run()
+	expect(t, err, nil)
+	refute(t, cmd1, cmd3)
 }
 
 func Test_Runner_SetWriter(t *testing.T) {
