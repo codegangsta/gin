@@ -54,6 +54,7 @@ func Test_Proxying(t *testing.T) {
 	greeting, err := ioutil.ReadAll(res.Body)
 	res.Body.Close()
 	expect(t, fmt.Sprintf("%s", greeting), "Hello world\n")
+	expect(t, runner.DidRun, true)
 }
 
 func Test_Proxying_Build_Errors(t *testing.T) {

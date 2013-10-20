@@ -7,13 +7,17 @@ import (
 )
 
 type MockRunner struct {
+	DidRun bool
 }
 
 func NewMockRunner() *MockRunner {
-	return &MockRunner{}
+	return &MockRunner{
+		DidRun: false,
+	}
 }
 
 func (m *MockRunner) Run() (*exec.Cmd, error) {
+	m.DidRun = true
 	return nil, nil
 }
 

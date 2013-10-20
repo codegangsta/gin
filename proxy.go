@@ -49,6 +49,7 @@ func (p *Proxy) defaultHandler(res http.ResponseWriter, req *http.Request) {
 	if len(errors) > 0 {
 		res.Write([]byte(errors))
 	} else {
+		p.runner.Run()
 		p.proxy.ServeHTTP(res, req)
 	}
 }
