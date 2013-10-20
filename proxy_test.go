@@ -3,6 +3,7 @@ package gin_test
 import (
 	"fmt"
 	"github.com/codegangsta/gin"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -50,4 +51,7 @@ func Test_Proxying(t *testing.T) {
 	res, err := http.Get("http://localhost:5678")
 	expect(t, err, nil)
 	expect(t, res == nil, false)
+	greeting, err := ioutil.ReadAll(res.Body)
+	res.Body.Close()
+	expect(t, fmt.Sprintf("%s", greeting), "Hello world\n")
 }
