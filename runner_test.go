@@ -3,7 +3,9 @@ package gin_test
 import (
 	"bytes"
 	"github.com/codegangsta/gin"
+	"os"
 	"testing"
+	"time"
 )
 
 func Test_NewRunner(t *testing.T) {
@@ -37,8 +39,11 @@ func Test_Runner_Kill(t *testing.T) {
 	expect(t, err, nil)
 	expect(t, cmd1, cmd2)
 
-  // time.Sleep(time.Second*1)
-  // os.Chtimes(bin, time.Now(), time.Now())
+  time.Sleep(time.Second*1)
+  os.Chtimes(bin, time.Now(), time.Now())
+  if err != nil {
+    t.Fatal("Error with Chtimes")
+  }
 
 	cmd3, err := runner.Run()
 	expect(t, err, nil)

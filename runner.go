@@ -81,10 +81,10 @@ func (r *runner) runBin() error {
 }
 
 func (r *runner) needsRefresh() bool {
-  _, err := r.Info()
+  info, err := r.Info()
   if err != nil {
     return false
   } else {
-    return true
+    return info.ModTime().After(r.starttime)
   }
 }
