@@ -9,6 +9,10 @@ import (
 type MockRunner struct {
 }
 
+func NewMockRunner() *MockRunner {
+	return &MockRunner{}
+}
+
 func (m *MockRunner) Run() (*exec.Cmd, error) {
 	return nil, nil
 }
@@ -22,4 +26,20 @@ func (m *MockRunner) SetWriter(io.Writer) {
 
 func (m *MockRunner) Kill() error {
 	return nil
+}
+
+type MockBuilder struct {
+	MockErrors string
+}
+
+func NewMockBuilder() *MockBuilder {
+	return &MockBuilder{}
+}
+
+func (m *MockBuilder) Build() error {
+	return nil
+}
+
+func (m *MockBuilder) Errors() string {
+	return m.MockErrors
 }

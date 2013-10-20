@@ -1,5 +1,8 @@
 package gin
 
-func NewProxy(builder Builder, runner Runner) string {
-	return ""
+type Proxy struct {
+}
+
+func NewProxy(builder Builder, runner Runner) *Proxy {
+	return &Proxy{}
 }
