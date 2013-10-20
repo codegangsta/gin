@@ -26,6 +26,7 @@ func NewRunner(bin string) Runner {
 	return &runner{
 		bin:       bin,
 		writer:    ioutil.Discard,
+		starttime: time.Now(),
 	}
 }
 
@@ -73,7 +74,7 @@ func (r *runner) runBin() error {
 		return err
 	}
 
-	//r.starttime = time.Now()
+	r.starttime = time.Now()
 
 	go io.Copy(r.writer, stdout)
 	return nil
