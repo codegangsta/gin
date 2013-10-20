@@ -26,24 +26,24 @@ func Test_Runner_Run(t *testing.T) {
 // func Test_Runner_SettingEnvironment(t *testing.T) {
 // }
 
-// func Test_Runner_Kill(t *testing.T) {
-// 	bin := "test_fixtures/writing_output"
-// 	runner := gin.NewRunner(bin)
-//
-// 	cmd1, err := runner.Run()
-// 	expect(t, err, nil)
-//
-// 	cmd2, err := runner.Run()
-// 	expect(t, err, nil)
-// 	expect(t, cmd1, cmd2)
-//
-//   // time.Sleep(time.Second*1)
-//   // os.Chtimes(bin, time.Now(), time.Now())
-//
-// 	// cmd3, err := runner.Run()
-// 	// expect(t, err, nil)
-// 	// refute(t, cmd1, cmd3)
-// }
+func Test_Runner_Kill(t *testing.T) {
+	bin := "test_fixtures/writing_output"
+	runner := gin.NewRunner(bin)
+
+	cmd1, err := runner.Run()
+	expect(t, err, nil)
+
+	cmd2, err := runner.Run()
+	expect(t, err, nil)
+	expect(t, cmd1, cmd2)
+
+  // time.Sleep(time.Second*1)
+  // os.Chtimes(bin, time.Now(), time.Now())
+
+	// cmd3, err := runner.Run()
+	// expect(t, err, nil)
+	// refute(t, cmd1, cmd3)
+}
 
 func Test_Runner_SetWriter(t *testing.T) {
 	buff := bytes.NewBufferString("")
