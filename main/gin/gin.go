@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/codegangsta/cli"
 	"github.com/codegangsta/gin"
+	"log"
 	"os"
 	"path/filepath"
 	"time"
@@ -23,7 +24,27 @@ func main() {
 func MainAction(c *cli.Context) {
 	println("Hello world")
 
+	pwd, err := os.Getwd()
+	if err != nil {
+		log.Fatalln(err)
+	}
+
 	builder := gin.NewBuilder(".")
+	runner := gin.NewRunner(filepath.Base(pwd))
+	runner.SetWriter(os.Stdout)
+	proxy := gin.NewProxy(builder, runner)
+
+	config := &gin.Config{
+		Port:    5678,
+		ProxyTo: "http://localhost:3000",
+	}
+
+	err = proxy.Run(config)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	// scan for changes
 	scanChanges(func(path string) {
 		println("building")
 		err := builder.Build()
@@ -46,7 +67,7 @@ func scanChanges(cb scanCallback) {
 				return filepath.SkipDir
 			}
 
-			if info.ModTime().After(startTime) {
+			if filepath.Ext(path) == ".go" && info.ModTime().After(startTime) {
 				cb(path)
 				startTime = time.Now()
 				return errors.New("done")
