@@ -37,6 +37,7 @@ func (r *runner) Run() (*exec.Cmd, error) {
 
 	if r.command == nil {
 		err := r.runBin()
+		time.Sleep(250 * time.Millisecond)
 		return r.command, err
 	} else {
 		return r.command, nil

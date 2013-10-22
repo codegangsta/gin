@@ -24,13 +24,13 @@ func main() {
 func MainAction(c *cli.Context) {
 	println("Hello world")
 
-	pwd, err := os.Getwd()
+	wd, err := os.Getwd()
 	if err != nil {
 		log.Fatalln(err)
 	}
 
 	builder := gin.NewBuilder(".")
-	runner := gin.NewRunner(filepath.Base(pwd))
+	runner := gin.NewRunner(filepath.Join(wd, filepath.Base(wd)))
 	runner.SetWriter(os.Stdout)
 	proxy := gin.NewProxy(builder, runner)
 
