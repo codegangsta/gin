@@ -2,6 +2,8 @@ package main
 
 import (
 	"errors"
+	"github.com/codegangsta/cli"
+	"github.com/codegangsta/gin"
 	"os"
 	"path/filepath"
 	"time"
@@ -10,28 +12,48 @@ import (
 var startTime = time.Now()
 
 func main() {
+	app := cli.NewApp()
+	app.Name = "gin"
+	app.Usage = "A development server for go web apps"
+	app.Action = MainAction
 
-	println("walking")
-
-	for {
-		scanChanges()
-		time.Sleep(500 * time.Millisecond)
-	}
+	app.Run(os.Args)
 }
 
-func scanChanges() {
-	filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
-		// TODO load ingnore from config
-		if path == ".git" {
-			return filepath.SkipDir
-		}
+func MainAction(c *cli.Context) {
+	println("Hello world")
 
-		if info.ModTime().After(startTime) {
-			println("Changes detected. Compiling...")
-			startTime = time.Now()
-			return errors.New("done")
+	builder := gin.NewBuilder(".")
+	scanChanges(func(path string) {
+		println("building")
+		err := builder.Build()
+		if err != nil {
+			println(builder.Errors())
+		} else {
+			println("Build successful")
 		}
-
-		return nil
+		time.Sleep(100 * time.Millisecond)
 	})
+}
+
+type scanCallback func(path string)
+
+func scanChanges(cb scanCallback) {
+	for {
+		filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
+			// TODO load ingnore from config
+			if path == ".git" {
+				return filepath.SkipDir
+			}
+
+			if info.ModTime().After(startTime) {
+				cb(path)
+				startTime = time.Now()
+				return errors.New("done")
+			}
+
+			return nil
+		})
+		time.Sleep(500 * time.Millisecond)
+	}
 }
