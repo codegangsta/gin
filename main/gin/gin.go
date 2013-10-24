@@ -4,7 +4,7 @@ import (
 	"errors"
 	"github.com/codegangsta/cli"
 	"github.com/codegangsta/gin"
-	"log"
+	"net/url"
 	"os"
 	"path/filepath"
 	"time"
@@ -12,21 +12,41 @@ import (
 
 var startTime = time.Now()
 
+var helpTemplate = "usage: {{.Name}} [-v|--version] [-h|--help] [--port=<port>] <url>\n"
+
 func main() {
+	// override the app help template
+	cli.AppHelpTemplate = helpTemplate
+
 	app := cli.NewApp()
 	app.Name = "gin"
-	app.Usage = "A development server for go web apps"
+	app.Usage = "A development for go web apps"
 	app.Action = MainAction
+	app.Flags = []cli.Flag{
+		cli.IntFlag{"port", 5678, "port for the proxy server"},
+	}
 
 	app.Run(os.Args)
 }
 
 func MainAction(c *cli.Context) {
-	println("Hello world")
+	if len(c.Args()) != 1 {
+		println("Error! Not enough arguments.\n")
+		cli.ShowAppHelp(c)
+		os.Exit(1)
+	}
+
+  proxyToURL, err := url.Parse(c.Args()[0])
+  if err != nil || len(proxyToURL.Host) == 0 {
+		println("Error! Invalid URL")
+		os.Exit(1)
+  }
+	port := c.Int("port")
 
 	wd, err := os.Getwd()
 	if err != nil {
-		log.Fatalln(err)
+		println(err)
+		os.Exit(1)
 	}
 
 	builder := gin.NewBuilder(".")
@@ -35,13 +55,15 @@ func MainAction(c *cli.Context) {
 	proxy := gin.NewProxy(builder, runner)
 
 	config := &gin.Config{
-		Port:    5678,
-		ProxyTo: "http://localhost:3000",
+		Port:    port,
+		ProxyTo: proxyToURL.String(),
 	}
 
+	println("gin server listening on port", port)
 	err = proxy.Run(config)
 	if err != nil {
-		log.Fatalln(err)
+		println(err)
+		os.Exit(1)
 	}
 
 	// scan for changes
