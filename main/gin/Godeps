@@ -1,0 +1,10 @@
+{
+	"ImportPath": "github.com/codegangsta/gin/main/gin",
+	"GoVersion": "go1.1.1",
+	"Deps": [
+		{
+			"ImportPath": "github.com/codegangsta/cli",
+			"Rev": "e600d28b75f38aa34b00bb895b53d01de506cf2c"
+		}
+	]
+}
