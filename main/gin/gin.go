@@ -36,11 +36,11 @@ func MainAction(c *cli.Context) {
 		os.Exit(1)
 	}
 
-  proxyToURL, err := url.Parse(c.Args()[0])
-  if err != nil || len(proxyToURL.Host) == 0 {
+	proxyToURL, err := url.Parse(c.Args()[0])
+	if err != nil || len(proxyToURL.Host) == 0 {
 		println("Error! Invalid URL")
 		os.Exit(1)
-  }
+	}
 	port := c.Int("port")
 
 	wd, err := os.Getwd()
