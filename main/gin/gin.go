@@ -14,7 +14,7 @@ import (
 
 var startTime = time.Now()
 
-var helpTemplate = "usage: {{.Name}} [-v|--version] [-h|--help] [--port=<port>] <url>\n"
+var helpTemplate = "usage: {{.Name}} [-v|--version] [-h|--help] [(-p|--port)=<port>] <url>\n"
 
 func main() {
 	// override the app help template
@@ -22,10 +22,10 @@ func main() {
 
 	app := cli.NewApp()
 	app.Name = "gin"
-	app.Usage = "A development for go web apps"
+	app.Usage = "A development server for martini"
 	app.Action = MainAction
 	app.Flags = []cli.Flag{
-		cli.IntFlag{"port", 5678, "port for the proxy server"},
+		cli.IntFlag{"port,p", 3000, "port for the proxy server"},
 	}
 
 	app.Run(os.Args)
@@ -33,7 +33,7 @@ func main() {
 
 func MainAction(c *cli.Context) {
 
-  logger := log.New(os.Stdout, "[gin] ", 0)
+	logger := log.New(os.Stdout, "[gin] ", 0)
 
 	port := c.Int("port")
 	appPort := strconv.Itoa(port + 1)
@@ -42,7 +42,7 @@ func MainAction(c *cli.Context) {
 
 	wd, err := os.Getwd()
 	if err != nil {
-    logger.Fatal(err)
+		logger.Fatal(err)
 	}
 
 	builder := gin.NewBuilder(".")
@@ -57,10 +57,10 @@ func MainAction(c *cli.Context) {
 
 	err = proxy.Run(config)
 	if err != nil {
-    logger.Fatal(err)
+		logger.Fatal(err)
 	}
 
-  logger.Printf("listening on port %d\n", port)
+	logger.Printf("listening on port %d\n", port)
 
 	// build right now
 	build(builder, logger)
@@ -74,8 +74,8 @@ func MainAction(c *cli.Context) {
 func build(builder gin.Builder, logger *log.Logger) {
 	err := builder.Build()
 	if err != nil {
-    logger.Println("ERROR! Compilation failed.")
-    fmt.Println(builder.Errors())
+		logger.Println("ERROR! Compilation failed.")
+		fmt.Println(builder.Errors())
 	}
 	time.Sleep(100 * time.Millisecond)
 }
