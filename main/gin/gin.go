@@ -2,8 +2,10 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"github.com/codegangsta/cli"
 	"github.com/codegangsta/gin"
+	"log"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -30,6 +32,9 @@ func main() {
 }
 
 func MainAction(c *cli.Context) {
+
+  logger := log.New(os.Stdout, "[gin] ", 0)
+
 	port := c.Int("port")
 	appPort := strconv.Itoa(port + 1)
 
@@ -37,8 +42,7 @@ func MainAction(c *cli.Context) {
 
 	wd, err := os.Getwd()
 	if err != nil {
-		println(err)
-		os.Exit(1)
+    logger.Fatal(err)
 	}
 
 	builder := gin.NewBuilder(".")
@@ -53,9 +57,10 @@ func MainAction(c *cli.Context) {
 
 	err = proxy.Run(config)
 	if err != nil {
-		println(err)
-		os.Exit(1)
+    logger.Fatal(err)
 	}
+
+  logger.Printf("listening on port %d\n", port)
 
 	// build right now
 	build(builder)
@@ -64,13 +69,12 @@ func MainAction(c *cli.Context) {
 	scanChanges(func(path string) {
 		build(builder)
 	})
-
 }
 
 func build(builder gin.Builder) {
 	err := builder.Build()
 	if err != nil {
-		println(builder.Errors())
+    fmt.Println(builder.Errors())
 	}
 	time.Sleep(100 * time.Millisecond)
 }
