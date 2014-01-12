@@ -14,7 +14,7 @@ import (
 
 var (
 	startTime    = time.Now()
-	helpTemplate = "usage: {{.Name}} [-v|--version] [-h|--help] [(-p|--port)=<port>] <url>\n"
+	helpTemplate = "usage: {{.Name}} [-v|--version] [-h|--help] [(-p|--port)=<port>]\n"
 	logger       = log.New(os.Stdout, "[gin] ", 0)
 	buildError   error
 )
