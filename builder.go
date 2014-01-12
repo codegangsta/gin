@@ -25,7 +25,7 @@ func (b *builder) Errors() string {
 }
 
 func (b *builder) Build() error {
-	command := exec.Command("go", "build")
+	command := exec.Command("go", "build", "-o", "bin")
 	command.Dir = b.dir
 
 	stderr, err := command.StderrPipe()

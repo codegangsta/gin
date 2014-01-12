@@ -15,6 +15,7 @@ import (
 var (
 	startTime    = time.Now()
 	helpTemplate = "usage: {{.Name}} [-v|--version] [-h|--help] [(-p|--port)=<port>] <url>\n"
+	logger       = log.New(os.Stdout, "[gin] ", 0)
 	buildError   error
 )
 
@@ -34,11 +35,8 @@ func main() {
 }
 
 func MainAction(c *cli.Context) {
-	logger := log.New(os.Stdout, "[gin] ", 0)
-
 	port := c.Int("port")
 	appPort := strconv.Itoa(port + 1)
-
 	os.Setenv("PORT", appPort)
 
 	wd, err := os.Getwd()
@@ -47,7 +45,7 @@ func MainAction(c *cli.Context) {
 	}
 
 	builder := gin.NewBuilder(".")
-	runner := gin.NewRunner(filepath.Join(wd, filepath.Base(wd)))
+	runner := gin.NewRunner(filepath.Join(wd, "bin"))
 	runner.SetWriter(os.Stdout)
 	proxy := gin.NewProxy(builder, runner)
 
