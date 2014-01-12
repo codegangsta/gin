@@ -63,17 +63,18 @@ func MainAction(c *cli.Context) {
   logger.Printf("listening on port %d\n", port)
 
 	// build right now
-	build(builder)
+	build(builder, logger)
 
 	// scan for changes
 	scanChanges(func(path string) {
-		build(builder)
+		build(builder, logger)
 	})
 }
 
-func build(builder gin.Builder) {
+func build(builder gin.Builder, logger *log.Logger) {
 	err := builder.Build()
 	if err != nil {
+    logger.Println("ERROR! Compilation failed.")
     fmt.Println(builder.Errors())
 	}
 	time.Sleep(100 * time.Millisecond)
