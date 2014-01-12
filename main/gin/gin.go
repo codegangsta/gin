@@ -4,9 +4,9 @@ import (
 	"errors"
 	"github.com/codegangsta/cli"
 	"github.com/codegangsta/gin"
-	"net/url"
 	"os"
 	"path/filepath"
+	"strconv"
 	"time"
 )
 
@@ -30,18 +30,10 @@ func main() {
 }
 
 func MainAction(c *cli.Context) {
-	if len(c.Args()) != 1 {
-		println("Error! Not enough arguments.\n")
-		cli.ShowAppHelp(c)
-		os.Exit(1)
-	}
-
-	proxyToURL, err := url.Parse(c.Args()[0])
-	if err != nil || len(proxyToURL.Host) == 0 {
-		println("Error! Invalid URL")
-		os.Exit(1)
-	}
 	port := c.Int("port")
+	appPort := strconv.Itoa(port + 1)
+
+	os.Setenv("PORT", appPort)
 
 	wd, err := os.Getwd()
 	if err != nil {
@@ -56,27 +48,31 @@ func MainAction(c *cli.Context) {
 
 	config := &gin.Config{
 		Port:    port,
-		ProxyTo: proxyToURL.String(),
+		ProxyTo: "http://localhost:" + appPort,
 	}
 
-	println("gin server listening on port", port)
 	err = proxy.Run(config)
 	if err != nil {
 		println(err)
 		os.Exit(1)
 	}
 
+	// build right now
+	build(builder)
+
 	// scan for changes
 	scanChanges(func(path string) {
-		println("building")
-		err := builder.Build()
-		if err != nil {
-			println(builder.Errors())
-		} else {
-			println("Build successful")
-		}
-		time.Sleep(100 * time.Millisecond)
+		build(builder)
 	})
+
+}
+
+func build(builder gin.Builder) {
+	err := builder.Build()
+	if err != nil {
+		println(builder.Errors())
+	}
+	time.Sleep(100 * time.Millisecond)
 }
 
 type scanCallback func(path string)
@@ -84,7 +80,7 @@ type scanCallback func(path string)
 func scanChanges(cb scanCallback) {
 	for {
 		filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
-			// TODO load ingnore from config
+			// TODO load ignore from config
 			if path == ".git" {
 				return filepath.SkipDir
 			}
