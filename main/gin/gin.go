@@ -12,9 +12,11 @@ import (
 	"time"
 )
 
-var startTime = time.Now()
-
-var helpTemplate = "usage: {{.Name}} [-v|--version] [-h|--help] [(-p|--port)=<port>] <url>\n"
+var (
+	startTime    = time.Now()
+	helpTemplate = "usage: {{.Name}} [-v|--version] [-h|--help] [(-p|--port)=<port>] <url>\n"
+	buildError   error
+)
 
 func main() {
 	// override the app help template
@@ -32,7 +34,6 @@ func main() {
 }
 
 func MainAction(c *cli.Context) {
-
 	logger := log.New(os.Stdout, "[gin] ", 0)
 
 	port := c.Int("port")
@@ -74,9 +75,17 @@ func MainAction(c *cli.Context) {
 func build(builder gin.Builder, logger *log.Logger) {
 	err := builder.Build()
 	if err != nil {
-		logger.Println("ERROR! Compilation failed.")
+		buildError = err
+		logger.Println("ERROR! Build failed.")
 		fmt.Println(builder.Errors())
+	} else {
+		// print success only if there were errors before
+		if buildError != nil {
+			logger.Println("Build Successful")
+		}
+		buildError = nil
 	}
+
 	time.Sleep(100 * time.Millisecond)
 }
 
@@ -85,7 +94,6 @@ type scanCallback func(path string)
 func scanChanges(cb scanCallback) {
 	for {
 		filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
-			// TODO load ignore from config
 			if path == ".git" {
 				return filepath.SkipDir
 			}
