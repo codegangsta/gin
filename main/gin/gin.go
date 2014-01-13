@@ -66,6 +66,7 @@ func MainAction(c *cli.Context) {
 
 	// scan for changes
 	scanChanges(func(path string) {
+		runner.Kill()
 		build(builder, logger)
 	})
 }
