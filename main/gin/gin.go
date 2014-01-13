@@ -14,7 +14,7 @@ import (
 
 var (
 	startTime    = time.Now()
-  helpTemplate = "gin - live reload for martini\nusage: {{.Name}} [-v|--version] [-h|--help] [(-p|--port)=<port>]\n"
+	helpTemplate = "gin - live reload for martini\nusage: {{.Name}} [-v|--version] [-h|--help] [(-p|--port)=<port>]\n"
 	logger       = log.New(os.Stdout, "[gin] ", 0)
 	buildError   error
 )
@@ -45,7 +45,7 @@ func MainAction(c *cli.Context) {
 	}
 
 	builder := gin.NewBuilder(".")
-	runner := gin.NewRunner(filepath.Join(wd, "bin"))
+	runner := gin.NewRunner(filepath.Join(wd, builder.Binary()))
 	runner.SetWriter(os.Stdout)
 	proxy := gin.NewProxy(builder, runner)
 
