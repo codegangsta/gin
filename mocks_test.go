@@ -40,6 +40,10 @@ func NewMockBuilder() *MockBuilder {
 	return &MockBuilder{}
 }
 
+func (m *MockBuilder) Binary() string {
+	return "bin"
+}
+
 func (m *MockBuilder) Build() error {
 	return nil
 }

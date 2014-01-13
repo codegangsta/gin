@@ -4,20 +4,37 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os/exec"
+	"runtime"
+	"strings"
 )
 
 type Builder interface {
 	Build() error
+	Binary() string
 	Errors() string
 }
 
 type builder struct {
 	dir    string
+	binary string
 	errors string
 }
 
 func NewBuilder(dir string) Builder {
-	return &builder{dir: dir}
+	bin := "bin" // TODO: make this configurable? (via config.go? or as parameter to NewBuilder()?)
+
+	// does not work on Windows without the ".exe" extension
+	if runtime.GOOS == "windows" {
+		if !strings.HasSuffix(bin, ".exe") { // if "bin" becomes configurable we should check if it already has the .exe extension
+			bin += ".exe"
+		}
+	}
+
+	return &builder{dir: dir, binary: bin}
+}
+
+func (b *builder) Binary() string {
+	return b.binary
 }
 
 func (b *builder) Errors() string {
@@ -25,7 +42,7 @@ func (b *builder) Errors() string {
 }
 
 func (b *builder) Build() error {
-	command := exec.Command("go", "build", "-o", "bin")
+	command := exec.Command("go", "build", "-o", b.binary)
 	command.Dir = b.dir
 
 	stderr, err := command.StderrPipe()

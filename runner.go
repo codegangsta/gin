@@ -54,7 +54,9 @@ func (r *runner) SetWriter(writer io.Writer) {
 
 func (r *runner) Kill() error {
 	if r.command != nil && r.command.Process != nil {
-		r.command.Process.Kill()
+		if err := r.command.Process.Kill(); err != nil {
+			return err
+		}
 		r.command = nil
 	}
 
