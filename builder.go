@@ -20,12 +20,14 @@ type builder struct {
 	errors string
 }
 
-func NewBuilder(dir string) Builder {
-	bin := "bin" // TODO: make this configurable? (via config.go? or as parameter to NewBuilder()?)
+func NewBuilder(dir string, bin string) Builder {
+	if len(bin) == 0 {
+		bin = "bin"
+	}
 
 	// does not work on Windows without the ".exe" extension
 	if runtime.GOOS == "windows" {
-		if !strings.HasSuffix(bin, ".exe") { // if "bin" becomes configurable we should check if it already has the .exe extension
+		if !strings.HasSuffix(bin, ".exe") { // check if it already has the .exe extension
 			bin += ".exe"
 		}
 	}

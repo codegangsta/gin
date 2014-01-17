@@ -64,7 +64,7 @@ func Test_Proxying_Build_Errors(t *testing.T) {
 	proxy := gin.NewProxy(builder, runner)
 
 	config := &gin.Config{
-		Port:    5678,
+		Port:    5679,
 		ProxyTo: "http://localhost:3000",
 	}
 
@@ -72,7 +72,7 @@ func Test_Proxying_Build_Errors(t *testing.T) {
 	defer proxy.Close()
 	expect(t, err, nil)
 
-	res, err := http.Get("http://localhost:5678")
+	res, err := http.Get("http://localhost:5679")
 	expect(t, err, nil)
 	expect(t, res == nil, false)
 	errors, err := ioutil.ReadAll(res.Body)
