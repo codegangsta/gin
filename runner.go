@@ -69,6 +69,10 @@ func (r *runner) runBin() error {
 	if err != nil {
 		return err
 	}
+	stderr, err := r.command.StderrPipe()
+	if err != nil {
+		return err
+	}
 
 	err = r.command.Start()
 	if err != nil {
@@ -78,6 +82,7 @@ func (r *runner) runBin() error {
 	r.starttime = time.Now()
 
 	go io.Copy(r.writer, stdout)
+	go io.Copy(r.writer, stderr)
 	return nil
 }
 
