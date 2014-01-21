@@ -14,7 +14,7 @@ import (
 
 var (
 	startTime    = time.Now()
-	helpTemplate = "gin - live reload for martini\nusage: {{.Name}} [-v|--version] [-h|--help] [(-p|--port)=<port>]\n"
+	helpTemplate = "gin - live reload for martini\nusage: {{.Name}} [-v|--version] [-h|--help] [(-p|--port)=<port>] [(-a|--appPort)=<appPort>] [(-b|--bin)=<binary>]\n"
 	logger       = log.New(os.Stdout, "[gin] ", 0)
 	buildError   error
 )
@@ -29,6 +29,8 @@ func main() {
 	app.Action = MainAction
 	app.Flags = []cli.Flag{
 		cli.IntFlag{"port,p", 3000, "port for the proxy server"},
+		cli.IntFlag{"appPort,a", 3001, "port for the martini web server"},
+		cli.StringFlag{"bin,b", "gin-bin", "name of generated binary file"},
 	}
 
 	app.Run(os.Args)
@@ -36,7 +38,7 @@ func main() {
 
 func MainAction(c *cli.Context) {
 	port := c.Int("port")
-	appPort := strconv.Itoa(port + 1)
+	appPort := strconv.Itoa(c.Int("appPort"))
 	os.Setenv("PORT", appPort)
 
 	wd, err := os.Getwd()
@@ -44,7 +46,7 @@ func MainAction(c *cli.Context) {
 		logger.Fatal(err)
 	}
 
-	builder := gin.NewBuilder(".")
+	builder := gin.NewBuilder(".", c.String("bin"))
 	runner := gin.NewRunner(filepath.Join(wd, builder.Binary()))
 	runner.SetWriter(os.Stdout)
 	proxy := gin.NewProxy(builder, runner)
