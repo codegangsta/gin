@@ -1,7 +1,7 @@
 package gin_test
 
 import (
-	"github.com/codegangsta/gin"
+	"github.com/codegangsta/gin/lib"
 	"testing"
 )
 

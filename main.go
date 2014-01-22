@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/codegangsta/cli"
-	"github.com/codegangsta/gin"
+	"github.com/codegangsta/gin/lib"
 	"log"
 	"os"
 	"path/filepath"

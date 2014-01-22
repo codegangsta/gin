@@ -2,7 +2,7 @@ package gin_test
 
 import (
 	"bytes"
-	"github.com/codegangsta/gin"
+	"github.com/codegangsta/gin/lib"
 	"os"
 	"path/filepath"
 	"runtime"
