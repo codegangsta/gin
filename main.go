@@ -14,22 +14,18 @@ import (
 
 var (
 	startTime    = time.Now()
-	helpTemplate = "gin - live reload for martini\nusage: {{.Name}} [-v|--version] [-h|--help] [(-p|--port)=<port>] [(-a|--appPort)=<appPort>] [(-b|--bin)=<binary>]\n"
 	logger       = log.New(os.Stdout, "[gin] ", 0)
 	buildError   error
 )
 
 func main() {
-	// override the app help template
-	cli.AppHelpTemplate = helpTemplate
-
 	app := cli.NewApp()
 	app.Name = "gin"
-	app.Usage = "A development server for martini"
+	app.Usage = "A live reload utility for Go web applications."
 	app.Action = MainAction
 	app.Flags = []cli.Flag{
 		cli.IntFlag{"port,p", 3000, "port for the proxy server"},
-		cli.IntFlag{"appPort,a", 3001, "port for the martini web server"},
+		cli.IntFlag{"appPort,a", 3001, "port for the Go web server"},
 		cli.StringFlag{"bin,b", "gin-bin", "name of generated binary file"},
 	}
 
