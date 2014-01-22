@@ -28,14 +28,3 @@ func Test_Builder_Build_Success(t *testing.T) {
 
 	refute(t, file, nil)
 }
-
-func Test_Builder_Build_Failure(t *testing.T) {
-	wd := filepath.Join("test_fixtures", "build_failure")
-
-	builder := gin.NewBuilder(wd, "bin")
-	err := builder.Build()
-	refute(t, err, nil)
-
-	expect(t, strings.Contains(builder.Errors(), fmt.Sprintf(".%smain.go:4: undefined: this", string(os.PathSeparator))), true)
-	expect(t, strings.Contains(builder.Errors(), fmt.Sprintf(".%smain.go:4: undefined: compile", string(os.PathSeparator))), true)
-}
