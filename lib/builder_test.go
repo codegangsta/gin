@@ -1,12 +1,10 @@
 package gin_test
 
 import (
-	"fmt"
 	"github.com/codegangsta/gin/lib"
 	"os"
 	"path/filepath"
 	"runtime"
-	"strings"
 	"testing"
 )
 
