@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/codegangsta/cli"
+	"github.com/codegangsta/envy/lib"
 	"github.com/codegangsta/gin/lib"
 	"log"
 	"os"
@@ -13,9 +14,9 @@ import (
 )
 
 var (
-	startTime    = time.Now()
-	logger       = log.New(os.Stdout, "[gin] ", 0)
-	buildError   error
+	startTime  = time.Now()
+	logger     = log.New(os.Stdout, "[gin] ", 0)
+	buildError error
 )
 
 func main() {
@@ -28,13 +29,32 @@ func main() {
 		cli.IntFlag{"appPort,a", 3001, "port for the Go web server"},
 		cli.StringFlag{"bin,b", "gin-bin", "name of generated binary file"},
 	}
+	app.Commands = []cli.Command{
+		{
+			Name:      "run",
+			ShortName: "r",
+			Usage:     "Run the gin proxy in the current working directory",
+			Action:    MainAction,
+		},
+		{
+			Name:      "env",
+			ShortName: "e",
+			Usage:     "Display environment variables set by the .env file",
+			Action:    EnvAction,
+		},
+	}
 
 	app.Run(os.Args)
 }
 
 func MainAction(c *cli.Context) {
-	port := c.Int("port")
-	appPort := strconv.Itoa(c.Int("appPort"))
+	port := c.GlobalInt("port")
+	appPort := strconv.Itoa(c.GlobalInt("appPort"))
+
+	// Bootstrap the environment
+	envy.Bootstrap()
+
+	// Set the PORT env
 	os.Setenv("PORT", appPort)
 
 	wd, err := os.Getwd()
@@ -42,7 +62,7 @@ func MainAction(c *cli.Context) {
 		logger.Fatal(err)
 	}
 
-	builder := gin.NewBuilder(".", c.String("bin"))
+	builder := gin.NewBuilder(".", c.GlobalString("bin"))
 	runner := gin.NewRunner(filepath.Join(wd, builder.Binary()))
 	runner.SetWriter(os.Stdout)
 	proxy := gin.NewProxy(builder, runner)
@@ -67,6 +87,19 @@ func MainAction(c *cli.Context) {
 		runner.Kill()
 		build(builder, logger)
 	})
+}
+
+func EnvAction(c *cli.Context) {
+	// Bootstrap the environment
+	env, err := envy.Bootstrap()
+	if err != nil {
+		logger.Fatalln(err)
+	}
+
+	for k, v := range env {
+		fmt.Printf("%s: %s\n", k, v)
+	}
+
 }
 
 func build(builder gin.Builder, logger *log.Logger) {
