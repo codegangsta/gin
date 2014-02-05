@@ -57,6 +57,39 @@ func Test_Proxying(t *testing.T) {
 	expect(t, runner.DidRun, true)
 }
 
+func Test_Proxying_Websocket(t *testing.T) {
+	builder := NewMockBuilder()
+	runner := NewMockRunner()
+	proxy := gin.NewProxy(builder, runner)
+
+	// create a test server and see if we can proxy a websocket request
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintln(w, "Hello world")
+	}))
+	defer ts.Close()
+
+	config := &gin.Config{
+		Port:    5678,
+		ProxyTo: ts.URL,
+	}
+
+	err := proxy.Run(config)
+	defer proxy.Close()
+	expect(t, err, nil)
+
+	client := &http.Client{}
+	req, _ := http.NewRequest("GET", "http://localhost:5678", nil)
+	req.Header.Set("Connection", "Upgrade")
+	req.Header.Set("Upgrade", "Websocket")
+	res, _ := client.Do(req)
+	expect(t, err, nil)
+	expect(t, res == nil, false)
+	greeting, err := ioutil.ReadAll(res.Body)
+	res.Body.Close()
+	expect(t, fmt.Sprintf("%s", greeting), "Hello world\n")
+	expect(t, runner.DidRun, true)
+}
+
 func Test_Proxying_Build_Errors(t *testing.T) {
 	builder := NewMockBuilder()
 	builder.MockErrors = "Foo bar here are some errors"
