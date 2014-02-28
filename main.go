@@ -28,6 +28,7 @@ func main() {
 		cli.IntFlag{"port,p", 3000, "port for the proxy server"},
 		cli.IntFlag{"appPort,a", 3001, "port for the Go web server"},
 		cli.StringFlag{"bin,b", "gin-bin", "name of generated binary file"},
+		cli.StringFlag{"path,t", ".", "Path to watch files from"},
 	}
 	app.Commands = []cli.Command{
 		{
@@ -83,7 +84,7 @@ func MainAction(c *cli.Context) {
 	build(builder, logger)
 
 	// scan for changes
-	scanChanges(func(path string) {
+	scanChanges(c.GlobalString("path"), func(path string) {
 		runner.Kill()
 		build(builder, logger)
 	})
@@ -121,9 +122,9 @@ func build(builder gin.Builder, logger *log.Logger) {
 
 type scanCallback func(path string)
 
-func scanChanges(cb scanCallback) {
+func scanChanges(watchPath string, cb scanCallback) {
 	for {
-		filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
+		filepath.Walk(watchPath, func(path string, info os.FileInfo, err error) error {
 			if path == ".git" {
 				return filepath.SkipDir
 			}
