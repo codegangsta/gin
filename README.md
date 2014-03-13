@@ -19,5 +19,13 @@ Then verify that `gin` was installed correctly:
 gin -h
 ~~~
 
+## Installing with fsnotify support
+
+If you're in an evironment like Linux, your operating system may support fsnotify events to trigger rebuilds. If you'd like support for this you can use the following command instead of the one above:
+
+~~~ shell
+go get -tags fsnotify github.com/codegangsta/gin
+~~~
+
 ## Supporting Gin in Your Web app
 `gin` assumes that your web app binds itself to the `PORT` environment variable so it can properly proxy requests to your app. Web frameworks like [Martini](http://github.com/codegangsta/martini) do this out of the box.

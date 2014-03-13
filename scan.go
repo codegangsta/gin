@@ -1,3 +1,6 @@
+//+build !fsnotify
+// The default is to build this scanner
+
 package main
 
 import (
