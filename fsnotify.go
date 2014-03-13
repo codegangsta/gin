@@ -5,10 +5,6 @@ package main
 
 import (
 	"code.google.com/p/go.exp/fsnotify"
-	"errors"
-	"os"
-	"path/filepath"
-	"time"
 )
 
 func scanChanges(watchPath string, cb scanCallback) {
@@ -26,19 +22,7 @@ func scanChanges(watchPath string, cb scanCallback) {
 	for {
 		select {
 		case <-watcher.Event:
-			filepath.Walk(watchPath, func(path string, info os.FileInfo, err error) error {
-				if path == ".git" {
-					return filepath.SkipDir
-				}
-
-				if filepath.Ext(path) == ".go" && info.ModTime().After(startTime) {
-					cb(path)
-					startTime = time.Now()
-					return errors.New("done")
-				}
-
-				return nil
-			})
+			walkPath(watchPath, cb)
 		case err := <-watcher.Error:
 			logger.Fatal(err)
 		}
