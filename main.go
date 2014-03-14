@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"github.com/codegangsta/cli"
 	"github.com/codegangsta/envy/lib"
@@ -14,7 +13,6 @@ import (
 )
 
 var (
-	startTime  = time.Now()
 	logger     = log.New(os.Stdout, "[gin] ", 0)
 	buildError error
 )
@@ -120,20 +118,4 @@ func build(builder gin.Builder, logger *log.Logger) {
 	}
 
 	time.Sleep(100 * time.Millisecond)
-}
-
-func walkPath(watchPath string, cb scanCallback) {
-	filepath.Walk(watchPath, func(path string, info os.FileInfo, err error) error {
-		if path == ".git" {
-			return filepath.SkipDir
-		}
-
-		if filepath.Ext(path) == ".go" && info.ModTime().After(startTime) {
-			cb(path)
-			startTime = time.Now()
-			return errors.New("done")
-		}
-
-		return nil
-	})
 }
