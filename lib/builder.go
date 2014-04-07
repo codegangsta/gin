@@ -56,6 +56,7 @@ func (b *builder) Build() error {
 	if err != nil {
 		return err
 	}
+	go command.Wait()
 
 	errors, err := ioutil.ReadAll(stderr)
 	if err != nil {
