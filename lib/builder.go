@@ -2,7 +2,6 @@ package gin
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os/exec"
 	"runtime"
 	"strings"
@@ -47,23 +46,14 @@ func (b *builder) Build() error {
 	command := exec.Command("go", "build", "-o", b.binary)
 	command.Dir = b.dir
 
-	stderr, err := command.StderrPipe()
-	if err != nil {
-		return err
+	output, err := command.CombinedOutput()
+
+	if command.ProcessState.Success() {
+		b.errors = ""
+	} else {
+		b.errors = string(output)
 	}
 
-	err = command.Start()
-	if err != nil {
-		return err
-	}
-	go command.Wait()
-
-	errors, err := ioutil.ReadAll(stderr)
-	if err != nil {
-		return err
-	}
-
-	b.errors = string(errors)
 	if len(b.errors) > 0 {
 		return fmt.Errorf(b.errors)
 	}
