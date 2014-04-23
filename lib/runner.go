@@ -78,7 +78,6 @@ func (r *runner) runBin() error {
 	if err != nil {
 		return err
 	}
-	go r.command.Wait()
 
 	r.starttime = time.Now()
 
