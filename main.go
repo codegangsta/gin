@@ -129,6 +129,11 @@ func scanChanges(watchPath string, cb scanCallback) {
 				return filepath.SkipDir
 			}
 
+			// ignore hidden files
+			if filepath.Base(path)[0] == '.' {
+				return nil
+			}
+
 			if filepath.Ext(path) == ".go" && info.ModTime().After(startTime) {
 				cb(path)
 				startTime = time.Now()
