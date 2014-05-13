@@ -17,14 +17,16 @@ type Runner interface {
 
 type runner struct {
 	bin       string
+	args      []string
 	writer    io.Writer
 	command   *exec.Cmd
 	starttime time.Time
 }
 
-func NewRunner(bin string) Runner {
+func NewRunner(bin string, args ...string) Runner {
 	return &runner{
 		bin:       bin,
+		args:      args,
 		writer:    ioutil.Discard,
 		starttime: time.Now(),
 	}
@@ -64,7 +66,7 @@ func (r *runner) Kill() error {
 }
 
 func (r *runner) runBin() error {
-	r.command = exec.Command(r.bin)
+	r.command = exec.Command(r.bin, r.args...)
 	stdout, err := r.command.StdoutPipe()
 	if err != nil {
 		return err
