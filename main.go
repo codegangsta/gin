@@ -6,6 +6,7 @@ import (
 	"github.com/codegangsta/cli"
 	"github.com/codegangsta/envy/lib"
 	"github.com/codegangsta/gin/lib"
+
 	"log"
 	"os"
 	"path/filepath"
@@ -64,7 +65,7 @@ func MainAction(c *cli.Context) {
 	}
 
 	builder := gin.NewBuilder(".", c.GlobalString("bin"))
-	runner := gin.NewRunner(filepath.Join(wd, builder.Binary()))
+	runner := gin.NewRunner(filepath.Join(wd, builder.Binary()), c.Args()...)
 	runner.SetWriter(os.Stdout)
 	proxy := gin.NewProxy(builder, runner)
 
