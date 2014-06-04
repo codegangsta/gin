@@ -21,7 +21,6 @@ type runner struct {
 	writer    io.Writer
 	command   *exec.Cmd
 	starttime time.Time
-	done      chan error
 }
 
 func NewRunner(bin string, args ...string) Runner {
@@ -57,12 +56,17 @@ func (r *runner) SetWriter(writer io.Writer) {
 
 func (r *runner) Kill() error {
 	if r.command != nil && r.command.Process != nil {
+		done := make(chan error)
+		go func() {
+			done <- r.command.Wait()
+		}()
+
 		if err := r.command.Process.Kill(); err != nil {
 			return err
 		}
-		r.command = nil
 		//Wait for our process to die before we return.
-		<-r.done
+		<-done
+		r.command = nil
 	}
 
 	return nil
@@ -83,10 +87,6 @@ func (r *runner) runBin() error {
 	if err != nil {
 		return err
 	}
-	r.done = make(chan error)
-	go func() {
-		r.done <- r.command.Wait()
-	}()
 
 	r.starttime = time.Now()
 
