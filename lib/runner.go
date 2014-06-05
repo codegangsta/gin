@@ -3,6 +3,7 @@ package gin
 import (
 	"io"
 	"io/ioutil"
+	"log"
 	"os"
 	"os/exec"
 	"time"
@@ -56,8 +57,25 @@ func (r *runner) SetWriter(writer io.Writer) {
 
 func (r *runner) Kill() error {
 	if r.command != nil && r.command.Process != nil {
-		if err := r.command.Process.Kill(); err != nil {
+		done := make(chan error)
+		go func() {
+			r.command.Wait()
+			close(done)
+		}()
+
+		//Trying a "soft" kill first
+		if err := r.command.Process.Signal(os.Interrupt); err != nil {
 			return err
+		}
+
+		//Wait for our process to die before we return or hard kill after 3 sec
+		select {
+		case <-time.After(3 * time.Second):
+			log.Print("failed to kill!")
+			if err := r.command.Process.Kill(); err != nil {
+				log.Println("failed to kill: ", err)
+			}
+		case <-done:
 		}
 		r.command = nil
 	}

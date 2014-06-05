@@ -9,8 +9,10 @@ import (
 
 	"log"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"strconv"
+	"syscall"
 	"time"
 )
 
@@ -81,6 +83,8 @@ func MainAction(c *cli.Context) {
 
 	logger.Printf("listening on port %d\n", port)
 
+	shutdown(runner)
+
 	// build right now
 	build(builder, logger)
 
@@ -145,4 +149,18 @@ func scanChanges(watchPath string, cb scanCallback) {
 		})
 		time.Sleep(500 * time.Millisecond)
 	}
+}
+
+func shutdown(runner gin.Runner) {
+	c := make(chan os.Signal, 2)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		s := <-c
+		log.Println("Got signal: ", s)
+		err := runner.Kill()
+		if err != nil {
+			log.Print("Error killing: ", err)
+		}
+		os.Exit(1)
+	}()
 }
