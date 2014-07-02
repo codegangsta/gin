@@ -19,6 +19,7 @@ import (
 var (
 	startTime  = time.Now()
 	logger     = log.New(os.Stdout, "[gin] ", 0)
+	immediate  = false
 	buildError error
 )
 
@@ -32,6 +33,7 @@ func main() {
 		cli.IntFlag{"appPort,a", 3001, "port for the Go web server"},
 		cli.StringFlag{"bin,b", "gin-bin", "name of generated binary file"},
 		cli.StringFlag{"path,t", ".", "Path to watch files from"},
+		cli.BoolFlag{"immediate,i", "run the server immediately after it's built"},
 	}
 	app.Commands = []cli.Command{
 		{
@@ -54,6 +56,7 @@ func main() {
 func MainAction(c *cli.Context) {
 	port := c.GlobalInt("port")
 	appPort := strconv.Itoa(c.GlobalInt("appPort"))
+	immediate = c.GlobalBool("immediate")
 
 	// Bootstrap the environment
 	envy.Bootstrap()
@@ -86,12 +89,12 @@ func MainAction(c *cli.Context) {
 	shutdown(runner)
 
 	// build right now
-	build(builder, logger)
+	build(builder, runner, logger)
 
 	// scan for changes
 	scanChanges(c.GlobalString("path"), func(path string) {
 		runner.Kill()
-		build(builder, logger)
+		build(builder, runner, logger)
 	})
 }
 
@@ -108,7 +111,7 @@ func EnvAction(c *cli.Context) {
 
 }
 
-func build(builder gin.Builder, logger *log.Logger) {
+func build(builder gin.Builder, runner gin.Runner, logger *log.Logger) {
 	err := builder.Build()
 	if err != nil {
 		buildError = err
@@ -120,6 +123,9 @@ func build(builder gin.Builder, logger *log.Logger) {
 			logger.Println("Build Successful")
 		}
 		buildError = nil
+		if immediate {
+			runner.Run()
+		}
 	}
 
 	time.Sleep(100 * time.Millisecond)
