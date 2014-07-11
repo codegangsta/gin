@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"runtime"
 	"time"
 )
 
@@ -64,7 +65,11 @@ func (r *runner) Kill() error {
 		}()
 
 		//Trying a "soft" kill first
-		if err := r.command.Process.Signal(os.Interrupt); err != nil {
+		if runtime.GOOS == "windows" {
+			if err := r.command.Process.Kill(); err != nil {
+				return err
+			}
+		} else if err := r.command.Process.Signal(os.Interrupt); err != nil {
 			return err
 		}
 
