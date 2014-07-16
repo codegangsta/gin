@@ -66,7 +66,7 @@ func MainAction(c *cli.Context) {
 		logger.Fatal(err)
 	}
 
-	builder := gin.NewBuilder(".", c.GlobalString("bin"))
+	builder := gin.NewBuilder(c.GlobalString("path"), c.GlobalString("bin"))
 	runner := gin.NewRunner(filepath.Join(wd, builder.Binary()), c.Args()...)
 	runner.SetWriter(os.Stdout)
 	proxy := gin.NewProxy(builder, runner)
