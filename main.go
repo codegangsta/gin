@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+
 	"github.com/codegangsta/cli"
 	"github.com/codegangsta/envy/lib"
 	"github.com/codegangsta/gin/lib"
@@ -28,10 +29,26 @@ func main() {
 	app.Usage = "A live reload utility for Go web applications."
 	app.Action = MainAction
 	app.Flags = []cli.Flag{
-		cli.IntFlag{"port,p", 3000, "port for the proxy server"},
-		cli.IntFlag{"appPort,a", 3001, "port for the Go web server"},
-		cli.StringFlag{"bin,b", "gin-bin", "name of generated binary file"},
-		cli.StringFlag{"path,t", ".", "Path to watch files from"},
+		cli.IntFlag{
+			Name:  "port,p",
+			Value: 3000,
+			Usage: "port for the proxy server",
+		},
+		cli.IntFlag{
+			Name:  "appPort,a",
+			Value: 3001,
+			Usage: "port for the Go web server",
+		},
+		cli.StringFlag{
+			Name:  "bin,b",
+			Value: "gin-bin",
+			Usage: "name of generated binary file",
+		},
+		cli.StringFlag{
+			Name:  "path,t",
+			Value: ".",
+			Usage: "Path to watch files from",
+		},
 	}
 	app.Commands = []cli.Command{
 		{
