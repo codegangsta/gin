@@ -49,6 +49,15 @@ func main() {
 			Value: ".",
 			Usage: "Path to watch files from",
 		},
+		cli.StringSliceFlag{
+			Name:  "exts,e",
+			Value: &cli.StringSlice{".go"},
+			Usage: "Adds file extensions to be watched",
+		},
+		cli.BoolFlag{
+			Name:  "verbose,x",
+			Usage: "Verbose mode",
+		},
 	}
 	app.Commands = []cli.Command{
 		{
@@ -71,6 +80,10 @@ func main() {
 func MainAction(c *cli.Context) {
 	port := c.GlobalInt("port")
 	appPort := strconv.Itoa(c.GlobalInt("appPort"))
+	path := c.GlobalString("path")
+	exts := c.GlobalStringSlice("exts")
+	proxyTo := "http://localhost:" + appPort
+	verbose := c.GlobalBool("verbose")
 
 	// Bootstrap the environment
 	envy.Bootstrap()
@@ -90,7 +103,7 @@ func MainAction(c *cli.Context) {
 
 	config := &gin.Config{
 		Port:    port,
-		ProxyTo: "http://localhost:" + appPort,
+		ProxyTo: proxyTo,
 	}
 
 	err = proxy.Run(config)
@@ -100,15 +113,35 @@ func MainAction(c *cli.Context) {
 
 	logger.Printf("listening on port %d\n", port)
 
+	if verbose {
+		logger.Printf("forwarding requests to %s\n", proxyTo)
+		logger.Printf("scanning directory %s\n", path)
+		logger.Printf("watching files with extension %s\n", exts)
+	}
+
 	shutdown(runner)
 
 	// build right now
 	build(builder, logger)
 
+	if verbose {
+		logger.Printf("Ready")
+	}
+
 	// scan for changes
-	scanChanges(c.GlobalString("path"), func(path string) {
+	scanChanges(path, exts, func(path string) {
+		if verbose {
+			logger.Printf("Killing running process...")
+		}
 		runner.Kill()
+
+		if verbose {
+			logger.Printf("Building...")
+		}
 		build(builder, logger)
+		if verbose {
+			logger.Printf("Ready")
+		}
 	})
 }
 
@@ -122,7 +155,6 @@ func EnvAction(c *cli.Context) {
 	for k, v := range env {
 		fmt.Printf("%s: %s\n", k, v)
 	}
-
 }
 
 func build(builder gin.Builder, logger *log.Logger) {
@@ -144,7 +176,7 @@ func build(builder gin.Builder, logger *log.Logger) {
 
 type scanCallback func(path string)
 
-func scanChanges(watchPath string, cb scanCallback) {
+func scanChanges(watchPath string, watchExts []string, cb scanCallback) {
 	for {
 		filepath.Walk(watchPath, func(path string, info os.FileInfo, err error) error {
 			if path == ".git" {
@@ -156,10 +188,16 @@ func scanChanges(watchPath string, cb scanCallback) {
 				return nil
 			}
 
-			if filepath.Ext(path) == ".go" && info.ModTime().After(startTime) {
-				cb(path)
-				startTime = time.Now()
-				return errors.New("done")
+			if !info.ModTime().After(startTime) {
+				return nil
+			}
+
+			for _, ext := range watchExts {
+				if filepath.Ext(path) == ext {
+					cb(path)
+					startTime = time.Now()
+					return errors.New("done")
+				}
 			}
 
 			return nil
