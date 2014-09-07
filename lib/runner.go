@@ -39,13 +39,14 @@ func (r *runner) Run() (*exec.Cmd, error) {
 		r.Kill()
 	}
 
-	if r.command == nil {
+	if r.command == nil || r.Exited() {
 		err := r.runBin()
 		time.Sleep(250 * time.Millisecond)
 		return r.command, err
 	} else {
 		return r.command, nil
 	}
+
 }
 
 func (r *runner) Info() (os.FileInfo, error) {
@@ -76,7 +77,6 @@ func (r *runner) Kill() error {
 		//Wait for our process to die before we return or hard kill after 3 sec
 		select {
 		case <-time.After(3 * time.Second):
-			log.Print("failed to kill!")
 			if err := r.command.Process.Kill(); err != nil {
 				log.Println("failed to kill: ", err)
 			}
@@ -86,6 +86,10 @@ func (r *runner) Kill() error {
 	}
 
 	return nil
+}
+
+func (r *runner) Exited() bool {
+	return r.command != nil && r.command.ProcessState != nil && r.command.ProcessState.Exited()
 }
 
 func (r *runner) runBin() error {
@@ -108,6 +112,8 @@ func (r *runner) runBin() error {
 
 	go io.Copy(r.writer, stdout)
 	go io.Copy(r.writer, stderr)
+	go r.command.Wait()
+
 	return nil
 }
 
