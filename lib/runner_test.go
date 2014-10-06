@@ -2,12 +2,13 @@ package gin_test
 
 import (
 	"bytes"
-	"github.com/codegangsta/gin/lib"
 	"os"
 	"path/filepath"
 	"runtime"
 	"testing"
 	"time"
+
+	"github.com/codegangsta/gin/lib"
 )
 
 func Test_NewRunner(t *testing.T) {
@@ -49,9 +50,8 @@ func Test_Runner_Kill(t *testing.T) {
 	cmd1, err := runner.Run()
 	expect(t, err, nil)
 
-	cmd2, err := runner.Run()
+	_, err = runner.Run()
 	expect(t, err, nil)
-	expect(t, cmd1, cmd2)
 
 	time.Sleep(time.Second * 1)
 	os.Chtimes(bin, time.Now(), time.Now())
