@@ -48,8 +48,17 @@ func main() {
 		cli.StringFlag{
 			Name:  "path,t",
 			Value: ".",
-		cli.StringFlag{"path,t", ".", "Path to watch files from"},
-		cli.StringFlag{"ignore,i", ".git", "Comma separated list of paths to ignore"},
+		},
+		cli.StringFlag{
+			Name:  "path,t",
+			Value: ".",
+			Usage: "Path to watch files from",
+		},
+		cli.StringFlag{
+			Name:  "ignore,i",
+			Value: ".git",
+			Usage: "Comma separated list of paths to ignore",
+		},
 	}
 	app.Commands = []cli.Command{
 		{
