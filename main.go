@@ -48,10 +48,6 @@ func main() {
 		cli.StringFlag{
 			Name:  "path,t",
 			Value: ".",
-		},
-		cli.StringFlag{
-			Name:  "path,t",
-			Value: ".",
 			Usage: "Path to watch files from",
 		},
 		cli.StringFlag{
