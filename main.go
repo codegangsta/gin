@@ -13,6 +13,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 )
@@ -48,6 +49,11 @@ func main() {
 			Name:  "path,t",
 			Value: ".",
 			Usage: "Path to watch files from",
+		},
+		cli.StringFlag{
+			Name:  "ignore,i",
+			Value: ".git",
+			Usage: "Comma separated list of paths to ignore",
 		},
 	}
 	app.Commands = []cli.Command{
@@ -106,7 +112,7 @@ func MainAction(c *cli.Context) {
 	build(builder, logger)
 
 	// scan for changes
-	scanChanges(c.GlobalString("path"), func(path string) {
+	scanChanges(c.GlobalString("path"), c.GlobalString("ignore"), func(path string) {
 		runner.Kill()
 		build(builder, logger)
 	})
@@ -144,10 +150,15 @@ func build(builder gin.Builder, logger *log.Logger) {
 
 type scanCallback func(path string)
 
-func scanChanges(watchPath string, cb scanCallback) {
+func scanChanges(watchPath string, ignores string, cb scanCallback) {
+	ignorePaths := make(map[string]bool)
+	for _, s := range strings.Split(ignores, ",") {
+		ignorePaths[s] = true
+	}
+
 	for {
 		filepath.Walk(watchPath, func(path string, info os.FileInfo, err error) error {
-			if path == ".git" {
+			if _, ok := ignorePaths[path]; ok {
 				return filepath.SkipDir
 			}
 
