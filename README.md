@@ -21,3 +21,32 @@ gin -h
 
 ## Supporting Gin in Your Web app
 `gin` assumes that your web app binds itself to the `PORT` environment variable so it can properly proxy requests to your app. Web frameworks like [Martini](http://github.com/codegangsta/martini) do this out of the box.
+## Example app
+
+```go 
+package main
+
+import (
+  "fmt"
+  "net/http"
+  "os"
+)
+
+func handler(w http.ResponseWriter, r *http.Request) {
+  fmt.Fprintf(w, "Hi there, I love %s!", r.URL.Path[1:])
+}
+
+func main() {
+  http.HandleFunc("/", handler)
+
+  port := os.Getenv("PORT")
+
+  // add colon to fix error experienced on OSX
+  // 2014/11/27 23:17:51 http: proxy error: dial tcp 127.0.0.1:3001: connection refused
+  port = ":" + port
+
+  fmt.Println(port)
+
+  http.ListenAndServe(port, nil)
+}
+```
