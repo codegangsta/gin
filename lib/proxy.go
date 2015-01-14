@@ -54,7 +54,7 @@ func (p *Proxy) defaultHandler(res http.ResponseWriter, req *http.Request) {
 		res.Write([]byte(errors))
 	} else {
 		p.runner.Run()
-		if strings.ToLower(req.Header.Get("Upgrade")) == "websocket" {
+		if strings.ToLower(req.Header.Get("Upgrade")) == "websocket" || strings.ToLower(req.Header.Get("Accept")) == "text/event-stream" {
 			proxyWebsocket(res, req, p.to)
 		} else {
 			p.proxy.ServeHTTP(res, req)
