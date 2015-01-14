@@ -54,6 +54,10 @@ func main() {
 			Name:  "immediate,i",
 			Usage: "run the server immediately after it's built",
 		},
+		cli.BoolFlag{
+			Name:  "godep,g",
+			Usage: "use godep when building",
+		},
 	}
 	app.Commands = []cli.Command{
 		{
@@ -89,7 +93,7 @@ func MainAction(c *cli.Context) {
 		logger.Fatal(err)
 	}
 
-	builder := gin.NewBuilder(c.GlobalString("path"), c.GlobalString("bin"))
+	builder := gin.NewBuilder(c.GlobalString("path"), c.GlobalString("bin"), c.GlobalBool("godep"))
 	runner := gin.NewRunner(filepath.Join(wd, builder.Binary()), c.Args()...)
 	runner.SetWriter(os.Stdout)
 	proxy := gin.NewProxy(builder, runner)
