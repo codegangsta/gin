@@ -4,9 +4,10 @@ import (
 	"errors"
 	"fmt"
 
+	cli "gopkg.in/urfave/cli.v1"
+
 	"github.com/codegangsta/envy/lib"
 	"github.com/codegangsta/gin/lib"
-	"gopkg.in/urfave/cli.v1"
 
 	"log"
 	"os"
