@@ -14,13 +14,14 @@ type Builder interface {
 }
 
 type builder struct {
+	execdir  string
 	dir      string
 	binary   string
 	errors   string
 	useGodep bool
 }
 
-func NewBuilder(dir string, bin string, useGodep bool) Builder {
+func NewBuilder(execdir string, dir string, bin string, useGodep bool) Builder {
 	if len(bin) == 0 {
 		bin = "bin"
 	}
@@ -32,7 +33,7 @@ func NewBuilder(dir string, bin string, useGodep bool) Builder {
 		}
 	}
 
-	return &builder{dir: dir, binary: bin, useGodep: useGodep}
+	return &builder{execdir: execdir, dir: dir, binary: bin, useGodep: useGodep}
 }
 
 func (b *builder) Binary() string {
@@ -50,7 +51,7 @@ func (b *builder) Build() error {
 	} else {
 		command = exec.Command("go", "build", "-o", b.binary)
 	}
-	command.Dir = b.dir
+	command.Dir = b.execdir
 
 	output, err := command.CombinedOutput()
 

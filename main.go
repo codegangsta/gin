@@ -6,7 +6,7 @@ import (
 
 	"github.com/codegangsta/cli"
 	"github.com/codegangsta/envy/lib"
-	"github.com/codegangsta/gin/lib"
+	"github.com/kyleboyle/gin/lib"
 
 	"log"
 	"os"
@@ -50,6 +50,11 @@ func main() {
 			Value: ".",
 			Usage: "Path to watch files from",
 		},
+		cli.StringFlag{
+			Name:  "execpath,e",
+			Value: "",
+			Usage: "Path to package that contains buildable artifact",
+		},
 		cli.BoolFlag{
 			Name:  "immediate,i",
 			Usage: "run the server immediately after it's built",
@@ -82,6 +87,11 @@ func MainAction(c *cli.Context) {
 	appPort := strconv.Itoa(c.GlobalInt("appPort"))
 	immediate = c.GlobalBool("immediate")
 
+	execpath := c.GlobalString("execpath")
+	if len(execpath) == 0 {
+		c.GlobalString("path")
+	}
+
 	// Bootstrap the environment
 	envy.Bootstrap()
 
@@ -93,8 +103,8 @@ func MainAction(c *cli.Context) {
 		logger.Fatal(err)
 	}
 
-	builder := gin.NewBuilder(c.GlobalString("path"), c.GlobalString("bin"), c.GlobalBool("godep"))
-	runner := gin.NewRunner(filepath.Join(wd, builder.Binary()), c.Args()...)
+	builder := gin.NewBuilder(execpath, c.GlobalString("path"), c.GlobalString("bin"), c.GlobalBool("godep"))
+	runner := gin.NewRunner(filepath.Join(wd, execpath, builder.Binary()), c.Args()...)
 	runner.SetWriter(os.Stdout)
 	proxy := gin.NewProxy(builder, runner)
 
@@ -170,6 +180,7 @@ func scanChanges(watchPath string, cb scanCallback) {
 			}
 
 			if filepath.Ext(path) == ".go" && info.ModTime().After(startTime) {
+				log.Printf("%s", path)
 				cb(path)
 				startTime = time.Now()
 				return errors.New("done")
