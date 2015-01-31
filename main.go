@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/codegangsta/cli"
 	"github.com/codegangsta/envy/lib"
@@ -49,6 +50,11 @@ func main() {
 			Name:  "path,t",
 			Value: ".",
 			Usage: "Path to watch files from",
+		},
+		cli.StringFlag{
+			Name:  "ext,f",
+			Value: "go",
+			Usage: "comma separated files extensions to watch (e.g. 'go,tmpl')",
 		},
 		cli.BoolFlag{
 			Name:  "immediate,i",
@@ -116,7 +122,7 @@ func MainAction(c *cli.Context) {
 	build(builder, runner, logger)
 
 	// scan for changes
-	scanChanges(c.GlobalString("path"), func(path string) {
+	scanChanges(c.GlobalString("path"), c.GlobalString("ext"), func(path string) {
 		runner.Kill()
 		build(builder, runner, logger)
 	})
@@ -157,7 +163,7 @@ func build(builder gin.Builder, runner gin.Runner, logger *log.Logger) {
 
 type scanCallback func(path string)
 
-func scanChanges(watchPath string, cb scanCallback) {
+func scanChanges(watchPath string, exts string, cb scanCallback) {
 	for {
 		filepath.Walk(watchPath, func(path string, info os.FileInfo, err error) error {
 			if path == ".git" {
@@ -169,7 +175,7 @@ func scanChanges(watchPath string, cb scanCallback) {
 				return nil
 			}
 
-			if filepath.Ext(path) == ".go" && info.ModTime().After(startTime) {
+			if checkExt(filepath.Ext(path), exts) && info.ModTime().After(startTime) {
 				cb(path)
 				startTime = time.Now()
 				return errors.New("done")
@@ -179,6 +185,15 @@ func scanChanges(watchPath string, cb scanCallback) {
 		})
 		time.Sleep(500 * time.Millisecond)
 	}
+}
+
+func checkExt(ext, allExts string) bool {
+	for _, e := range strings.Split(allExts, ",") {
+		if ext == "."+e {
+			return true
+		}
+	}
+	return false
 }
 
 func shutdown(runner gin.Runner) {
