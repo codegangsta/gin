@@ -63,6 +63,11 @@ func main() {
 			Name:  "godep,g",
 			Usage: "use godep when building",
 		},
+		cli.StringFlag{
+			Name:  "build,d",
+			Value: "",
+			Usage: "Path to build files from (defaults to same value as --path)",
+		},
 	}
 	app.Commands = []cli.Command{
 		{
@@ -98,7 +103,11 @@ func MainAction(c *cli.Context) {
 		logger.Fatal(err)
 	}
 
-	builder := gin.NewBuilder(c.GlobalString("path"), c.GlobalString("bin"), c.GlobalBool("godep"))
+	buildPath := c.GlobalString("build")
+	if buildPath == "" {
+		buildPath = c.GlobalString("path")
+	}
+	builder := gin.NewBuilder(buildPath, c.GlobalString("bin"), c.GlobalBool("godep"))
 	runner := gin.NewRunner(filepath.Join(wd, builder.Binary()), c.Args()...)
 	runner.SetWriter(os.Stdout)
 	proxy := gin.NewProxy(builder, runner)
