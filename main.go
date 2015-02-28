@@ -46,6 +46,11 @@ func main() {
 			Usage: "name of generated binary file",
 		},
 		cli.StringFlag{
+			Name:  "bind,n",
+			Value: "",
+			Usage: "Interface to bind for the Gin proxy server",
+		},
+		cli.StringFlag{
 			Name:  "path,t",
 			Value: ".",
 			Usage: "Path to watch files from",
@@ -99,6 +104,7 @@ func MainAction(c *cli.Context) {
 	proxy := gin.NewProxy(builder, runner)
 
 	config := &gin.Config{
+		Bind:    c.GlobalString("bind"),
 		Port:    port,
 		ProxyTo: "http://localhost:" + appPort,
 	}
@@ -108,7 +114,11 @@ func MainAction(c *cli.Context) {
 		logger.Fatal(err)
 	}
 
-	logger.Printf("listening on port %d\n", port)
+	if config.Bind != "" {
+		logger.Printf("listening on %s:%d\n", config.Bind, port)
+	} else {
+		logger.Printf("listening on port %d\n", port)
+	}
 
 	shutdown(runner)
 
