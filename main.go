@@ -7,6 +7,7 @@ import (
 	"github.com/codegangsta/cli"
 	"github.com/codegangsta/envy/lib"
 	"github.com/codegangsta/gin/lib"
+	"github.com/theonejb/watchman"
 
 	"log"
 	"os"
@@ -58,6 +59,10 @@ func main() {
 			Name:  "godep,g",
 			Usage: "use godep when building",
 		},
+		cli.BoolFlag{
+			Name:  "pkgwatch,w",
+			Usage: "watch the package and any imported packages for change instead of files in the current dir",
+		},
 	}
 	app.Commands = []cli.Command{
 		{
@@ -81,6 +86,7 @@ func MainAction(c *cli.Context) {
 	port := c.GlobalInt("port")
 	appPort := strconv.Itoa(c.GlobalInt("appPort"))
 	immediate = c.GlobalBool("immediate")
+	pkgWatch := c.GlobalBool("pkgwatch")
 
 	// Bootstrap the environment
 	envy.Bootstrap()
@@ -116,10 +122,17 @@ func MainAction(c *cli.Context) {
 	build(builder, runner, logger)
 
 	// scan for changes
-	scanChanges(c.GlobalString("path"), func(path string) {
+	cb := func(path string) {
 		runner.Kill()
 		build(builder, runner, logger)
-	})
+	}
+	if pkgWatch {
+		fmt.Println("Using Pkg Watcher")
+		scanChangesWithWatcher(c.GlobalString("path"), cb)
+	} else {
+		fmt.Println("Using file watcher")
+		scanChanges(c.GlobalString("path"), cb)
+	}
 }
 
 func EnvAction(c *cli.Context) {
@@ -178,6 +191,13 @@ func scanChanges(watchPath string, cb scanCallback) {
 			return nil
 		})
 		time.Sleep(500 * time.Millisecond)
+	}
+}
+
+func scanChangesWithWatcher(watchPath string, cb scanCallback) {
+	for {
+		watchman.WatchPackageAndReturnOnChange(watchPath)
+		cb(watchPath)
 	}
 }
 
