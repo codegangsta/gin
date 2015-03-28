@@ -6,7 +6,7 @@ import (
 
 	"github.com/codegangsta/cli"
 	"github.com/codegangsta/envy/lib"
-	"github.com/dongri/gin/lib"
+	"github.com/codegangsta/gin/lib"
 
 	"log"
 	"os"
