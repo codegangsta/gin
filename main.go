@@ -6,7 +6,7 @@ import (
 
 	"github.com/codegangsta/cli"
 	"github.com/codegangsta/envy/lib"
-	"github.com/codegangsta/gin/lib"
+	"github.com/dongri/gin/lib"
 
 	"log"
 	"os"
@@ -32,7 +32,7 @@ func main() {
 	app.Flags = []cli.Flag{
 		cli.IntFlag{
 			Name:  "port,p",
-			Value: 3000,
+			Value: getPort(),
 			Usage: "port for the proxy server",
 		},
 		cli.IntFlag{
@@ -193,4 +193,17 @@ func shutdown(runner gin.Runner) {
 		}
 		os.Exit(1)
 	}()
+}
+
+func getPort() int {
+	defaultPort := 3000
+	envPort := os.Getenv("PORT")
+	if envPort == "" {
+		return defaultPort
+	}
+	port, err := strconv.Atoi(envPort)
+	if err != nil {
+		return defaultPort
+	}
+	return port
 }
