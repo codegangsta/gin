@@ -46,9 +46,15 @@ func main() {
 			Usage: "name of generated binary file",
 		},
 		cli.StringFlag{
+			Name:  "cwd,d",
+			Value: ".",
+			Usage: "Directory to build from",
+		},
+		cli.StringFlag{
 			Name:  "path,t",
 			Value: ".",
-			Usage: "Path to watch files from",
+			Usage: fmt.Sprintf("Path or paths to watch files from (e.g. \".%csome/path%c../another/one\")",
+				os.PathListSeparator, os.PathListSeparator),
 		},
 		cli.BoolFlag{
 			Name:  "immediate,i",
@@ -93,7 +99,7 @@ func MainAction(c *cli.Context) {
 		logger.Fatal(err)
 	}
 
-	builder := gin.NewBuilder(c.GlobalString("path"), c.GlobalString("bin"), c.GlobalBool("godep"))
+	builder := gin.NewBuilder(c.GlobalString("cwd"), c.GlobalString("bin"), c.GlobalBool("godep"))
 	runner := gin.NewRunner(filepath.Join(wd, builder.Binary()), c.Args()...)
 	runner.SetWriter(os.Stdout)
 	proxy := gin.NewProxy(builder, runner)
@@ -158,25 +164,28 @@ func build(builder gin.Builder, runner gin.Runner, logger *log.Logger) {
 type scanCallback func(path string)
 
 func scanChanges(watchPath string, cb scanCallback) {
+	paths := filepath.SplitList(watchPath)
 	for {
-		filepath.Walk(watchPath, func(path string, info os.FileInfo, err error) error {
-			if path == ".git" {
-				return filepath.SkipDir
-			}
+		for _, path := range paths {
+			filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
+				if path == ".git" {
+					return filepath.SkipDir
+				}
 
-			// ignore hidden files
-			if filepath.Base(path)[0] == '.' {
+				// ignore hidden files
+				if filepath.Base(path)[0] == '.' {
+					return nil
+				}
+
+				if filepath.Ext(path) == ".go" && info.ModTime().After(startTime) {
+					cb(path)
+					startTime = time.Now()
+					return errors.New("done")
+				}
+
 				return nil
-			}
-
-			if filepath.Ext(path) == ".go" && info.ModTime().After(startTime) {
-				cb(path)
-				startTime = time.Now()
-				return errors.New("done")
-			}
-
-			return nil
-		})
+			})
+		}
 		time.Sleep(500 * time.Millisecond)
 	}
 }
