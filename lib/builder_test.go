@@ -26,3 +26,21 @@ func Test_Builder_Build_Success(t *testing.T) {
 
 	refute(t, file, nil)
 }
+
+func Test_GbBuilder_Build_Success(t *testing.T) {
+	wd := filepath.Join("test_fixtures", "build_gbProj", "src", "test1")
+
+	builder := gin.NewGbBuilder(wd)
+	expect(t, builder.Errors(), "")
+
+	binPath := filepath.Join("test_fixtures", "build_gbProj", "bin", "test1")
+	expect(t, builder.Binary(), binPath)
+
+	err := builder.Build()
+	expect(t, err, nil)
+
+	file, err := os.Open(binPath)
+	expect(t, err, nil)
+
+	refute(t, file, nil)
+}
