@@ -129,7 +129,12 @@ func (b *gbBuilder) Build() error {
 		return b.err
 	}
 
-	return b.importResolveBuild(true)
+	if err := b.importResolveBuild(true); err != nil {
+		b.err = err
+		return b.err
+	}
+
+	return nil
 }
 
 // importResolveBuild does everything because you can't reuse ResolvePackages return values
