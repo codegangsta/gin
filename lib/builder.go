@@ -125,10 +125,6 @@ func (b *gbBuilder) Errors() string {
 }
 
 func (b *gbBuilder) Build() error {
-	if b.err != nil {
-		return b.err
-	}
-
 	if err := b.importResolveBuild(true); err != nil {
 		b.err = err
 		return b.err
@@ -171,6 +167,6 @@ func (b *gbBuilder) importResolveBuild(build bool) error {
 		return fmt.Errorf("ctx.Destroy() failed: %v", err)
 
 	}
-
+	b.err = nil
 	return nil
 }
