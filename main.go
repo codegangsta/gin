@@ -58,6 +58,10 @@ func main() {
 			Name:  "godep,g",
 			Usage: "use godep when building",
 		},
+		cli.BoolFlag{
+			Name:  "gb",
+			Usage: "use gb when building",
+		},
 	}
 	app.Commands = []cli.Command{
 		{
@@ -93,8 +97,18 @@ func MainAction(c *cli.Context) {
 		logger.Fatal(err)
 	}
 
-	builder := gin.NewBuilder(c.GlobalString("path"), c.GlobalString("bin"), c.GlobalBool("godep"))
-	runner := gin.NewRunner(filepath.Join(wd, builder.Binary()), c.Args()...)
+	var (
+		path    string
+		builder gin.Builder
+	)
+	if c.GlobalBool("gb") {
+		builder = gin.NewGbBuilder(c.GlobalString("path"))
+		path = builder.Binary()
+	} else {
+		builder = gin.NewBuilder(c.GlobalString("path"), c.GlobalString("bin"), c.GlobalBool("godep"))
+		path = filepath.Join(wd, builder.Binary())
+	}
+	runner := gin.NewRunner(path, c.Args()...)
 	runner.SetWriter(os.Stdout)
 	proxy := gin.NewProxy(builder, runner)
 
