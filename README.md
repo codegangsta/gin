@@ -36,3 +36,5 @@ When you normally start your server with [flags](https://godoc.org/flag)
 if you want to override any of them when running `gin` we suggest you 
 instead use [github.com/namsral/flag](https://github.com/namsral/flag)
 as explained in [this post](http://stackoverflow.com/questions/24873883/organizing-environment-variables-golang/28160665#28160665)
+
+If you want to still use the standard flag package but support environment variables, you might want to try [github.com/peak6/envflag](https://github.com/peak6/envflag).
