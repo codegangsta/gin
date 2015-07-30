@@ -1,22 +1,28 @@
 package gin_test
 
 import (
-	"github.com/codegangsta/gin/lib"
 	"os"
 	"path/filepath"
 	"runtime"
 	"testing"
+
+	"github.com/codegangsta/gin/lib"
 )
 
 func Test_Builder_Build_Success(t *testing.T) {
-	wd := filepath.Join("test_fixtures", "build_success")
+	dir := filepath.Join("test_fixtures", "build_success")
 	bin := "build_success"
 	if runtime.GOOS == "windows" {
 		bin += ".exe"
 	}
 
-	builder := gin.NewBuilder(wd, bin, false)
-	err := builder.Build()
+	wd, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("Could not get working directory: %v", err)
+	}
+
+	builder := gin.NewBuilder(dir, bin, false, wd)
+	err = builder.Build()
 	expect(t, err, nil)
 
 	file, err := os.Open(filepath.Join(wd, bin))
