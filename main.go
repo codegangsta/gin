@@ -117,6 +117,7 @@ func MainAction(c *cli.Context) {
 
 	// scan for changes
 	scanChanges(c.GlobalString("path"), func(path string) {
+		logger.Printf("Change detected, build starting...")
 		runner.Kill()
 		build(builder, runner, logger)
 	})
