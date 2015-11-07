@@ -30,6 +30,11 @@ func main() {
 	app.Usage = "A live reload utility for Go web applications."
 	app.Action = MainAction
 	app.Flags = []cli.Flag{
+		cli.StringFlag{
+			Name:  "laddr,l",
+			Value: "",
+			Usage: "listening address for the proxy server",
+		},
 		cli.IntFlag{
 			Name:  "port,p",
 			Value: 3000,
@@ -78,6 +83,7 @@ func main() {
 }
 
 func MainAction(c *cli.Context) {
+	laddr := c.GlobalString("laddr")
 	port := c.GlobalInt("port")
 	appPort := strconv.Itoa(c.GlobalInt("appPort"))
 	immediate = c.GlobalBool("immediate")
@@ -99,6 +105,7 @@ func MainAction(c *cli.Context) {
 	proxy := gin.NewProxy(builder, runner)
 
 	config := &gin.Config{
+		Laddr:   laddr,
 		Port:    port,
 		ProxyTo: "http://localhost:" + appPort,
 	}
@@ -108,7 +115,11 @@ func MainAction(c *cli.Context) {
 		logger.Fatal(err)
 	}
 
-	logger.Printf("listening on port %d\n", port)
+	if laddr != "" {
+		logger.Printf("listening at %s:%d\n", laddr, port)
+	} else {
+		logger.Printf("listening on port %d\n", port)
+	}
 
 	shutdown(runner)
 
