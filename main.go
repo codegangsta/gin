@@ -32,7 +32,7 @@ func main() {
 	app.Flags = []cli.Flag{
 		cli.IntFlag{
 			Name:  "port,p",
-			Value: 3000,
+			Value: getPort(),
 			Usage: "port for the proxy server",
 		},
 		cli.IntFlag{
@@ -136,22 +136,23 @@ func EnvAction(c *cli.Context) {
 }
 
 func build(builder gin.Builder, runner gin.Runner, logger *log.Logger) {
-	err := builder.Build()
-	if err != nil {
-		buildError = err
-		logger.Println("ERROR! Build failed.")
-		fmt.Println(builder.Errors())
-	} else {
-		// print success only if there were errors before
-		if buildError != nil {
-			logger.Println("Build Successful")
-		}
-		buildError = nil
-		if immediate {
-			runner.Run()
-		}
-	}
+	// err :=  //builder.Build()
+	// if err != nil {
+	// 	buildError = err
+	// 	logger.Println("ERROR! Build failed.")
+	// 	fmt.Println(builder.Errors())
+	// } else {
+	// 	// print success only if there were errors before
+	// 	if buildError != nil {
+	// 		logger.Println("Build Successful")
+	// 	}
+	// 	buildError = nil
+	// 	if immediate {
+	// 		runner.Run()
+	// 	}
+	// }
 
+	runner.Run()
 	time.Sleep(100 * time.Millisecond)
 }
 
@@ -193,4 +194,17 @@ func shutdown(runner gin.Runner) {
 		}
 		os.Exit(1)
 	}()
+}
+
+func getPort() int {
+	defaultPort := 3000
+	envPort := os.Getenv("PORT")
+	if envPort == "" {
+		return defaultPort
+	}
+	port, err := strconv.Atoi(envPort)
+	if err != nil {
+		return defaultPort
+	}
+	return port
 }
