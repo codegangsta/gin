@@ -22,6 +22,9 @@ var (
 	logger     = log.New(os.Stdout, "[gin] ", 0)
 	immediate  = false
 	buildError error
+	colorGreen = string([]byte{27, 91, 57, 55, 59, 51, 50, 59, 49, 109})
+	colorRed   = string([]byte{27, 91, 57, 55, 59, 51, 49, 59, 49, 109})
+	colorReset = string([]byte{27, 91, 48, 109})
 )
 
 func main() {
@@ -139,12 +142,12 @@ func build(builder gin.Builder, runner gin.Runner, logger *log.Logger) {
 	err := builder.Build()
 	if err != nil {
 		buildError = err
-		logger.Println("ERROR! Build failed.")
+		logger.Printf("%sERROR! Build failed.%s\n", colorRed, colorReset)
 		fmt.Println(builder.Errors())
 	} else {
 		// print success only if there were errors before
 		if buildError != nil {
-			logger.Println("Build Successful")
+			logger.Printf("%sBuild Successful%s\n", colorGreen, colorReset)
 		}
 		buildError = nil
 		if immediate {
