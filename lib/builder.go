@@ -17,10 +17,11 @@ type builder struct {
 	dir      string
 	binary   string
 	errors   string
+	mainPath string
 	useGodep bool
 }
 
-func NewBuilder(dir string, bin string, useGodep bool) Builder {
+func NewBuilder(dir string, bin string, useGodep bool, mainPath string) Builder {
 	if len(bin) == 0 {
 		bin = "bin"
 	}
@@ -32,7 +33,7 @@ func NewBuilder(dir string, bin string, useGodep bool) Builder {
 		}
 	}
 
-	return &builder{dir: dir, binary: bin, useGodep: useGodep}
+	return &builder{dir: dir, binary: bin, mainPath: mainPath, useGodep: useGodep}
 }
 
 func (b *builder) Binary() string {
@@ -46,9 +47,9 @@ func (b *builder) Errors() string {
 func (b *builder) Build() error {
 	var command *exec.Cmd
 	if b.useGodep {
-		command = exec.Command("godep", "go", "build", "-o", b.binary)
+		command = exec.Command("godep", "go", "build", "-o", b.binary, b.mainPath)
 	} else {
-		command = exec.Command("go", "build", "-o", b.binary)
+		command = exec.Command("go", "build", "-o", b.binary, b.mainPath)
 	}
 	command.Dir = b.dir
 
