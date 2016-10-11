@@ -61,6 +61,11 @@ func main() {
 			Name:  "godep,g",
 			Usage: "use godep when building",
 		},
+		cli.IntFlag{
+			Name:  "latency,l",
+			Value: 500,
+			Usage: "number of milliseconds to wait between scans",
+		},
 	}
 	app.Commands = []cli.Command{
 		{
@@ -119,7 +124,7 @@ func MainAction(c *cli.Context) {
 	build(builder, runner, logger)
 
 	// scan for changes
-	scanChanges(c.GlobalString("path"), func(path string) {
+	scanChanges(c.GlobalString("path"), time.Duration(c.GlobalInt("latency")), func(path string) {
 		runner.Kill()
 		build(builder, runner, logger)
 	})
@@ -160,7 +165,8 @@ func build(builder gin.Builder, runner gin.Runner, logger *log.Logger) {
 
 type scanCallback func(path string)
 
-func scanChanges(watchPath string, cb scanCallback) {
+func scanChanges(watchPath string, latency time.Duration, cb scanCallback) {
+
 	for {
 		filepath.Walk(watchPath, func(path string, info os.FileInfo, err error) error {
 			if path == ".git" {
@@ -180,7 +186,7 @@ func scanChanges(watchPath string, cb scanCallback) {
 
 			return nil
 		})
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(latency * time.Millisecond)
 	}
 }
 
