@@ -6,7 +6,7 @@ import (
 
 	"gopkg.in/urfave/cli.v1"
 	"github.com/codegangsta/envy/lib"
-	"github.com/codegangsta/gin/lib"
+	"github.com/omeid/gin/lib"
 
 	"log"
 	"os"
@@ -61,6 +61,11 @@ func main() {
 			Name:  "godep,g",
 			Usage: "use godep when building",
 		},
+		cli.StringFlag {
+		  Name: "tags",
+		  Value: "",
+		  Usage: "build tags used for generated binary.",
+		},
 	}
 	app.Commands = []cli.Command{
 		{
@@ -96,7 +101,7 @@ func MainAction(c *cli.Context) {
 		logger.Fatal(err)
 	}
 
-	builder := gin.NewBuilder(c.GlobalString("path"), c.GlobalString("bin"), c.GlobalBool("godep"))
+	builder := gin.NewBuilder(c.GlobalString("path"), c.GlobalString("bin"), c.GlobalBool("godep"), c.GlobalString("tags"))
 	runner := gin.NewRunner(filepath.Join(wd, builder.Binary()), c.Args()...)
 	runner.SetWriter(os.Stdout)
 	proxy := gin.NewProxy(builder, runner)
