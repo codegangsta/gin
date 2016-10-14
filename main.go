@@ -49,6 +49,11 @@ func main() {
 			Usage: "name of generated binary file",
 		},
 		cli.StringFlag{
+			Name:  "bind,n",
+			Value: "",
+			Usage: "Interface to bind for the Gin proxy server",
+		},
+		cli.StringFlag{
 			Name:  "path,t",
 			Value: ".",
 			Usage: "Path to watch files from",
@@ -60,6 +65,11 @@ func main() {
 		cli.BoolFlag{
 			Name:  "godep,g",
 			Usage: "use godep when building",
+		},
+		cli.StringFlag{
+			Name:  "build,d",
+			Value: "",
+			Usage: "Path to build files from (defaults to same value as --path)",
 		},
 	}
 	app.Commands = []cli.Command{
@@ -96,12 +106,17 @@ func MainAction(c *cli.Context) {
 		logger.Fatal(err)
 	}
 
-	builder := gin.NewBuilder(c.GlobalString("path"), c.GlobalString("bin"), c.GlobalBool("godep"))
+	buildPath := c.GlobalString("build")
+	if buildPath == "" {
+		buildPath = c.GlobalString("path")
+	}
+	builder := gin.NewBuilder(buildPath, c.GlobalString("bin"), c.GlobalBool("godep"))
 	runner := gin.NewRunner(filepath.Join(wd, builder.Binary()), c.Args()...)
 	runner.SetWriter(os.Stdout)
 	proxy := gin.NewProxy(builder, runner)
 
 	config := &gin.Config{
+		Bind:    c.GlobalString("bind"),
 		Port:    port,
 		ProxyTo: "http://localhost:" + appPort,
 	}
@@ -111,7 +126,11 @@ func MainAction(c *cli.Context) {
 		logger.Fatal(err)
 	}
 
-	logger.Printf("listening on port %d\n", port)
+	if config.Bind != "" {
+		logger.Printf("listening on %s:%d\n", config.Bind, port)
+	} else {
+		logger.Printf("listening on port %d\n", port)
+	}
 
 	shutdown(runner)
 
