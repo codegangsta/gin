@@ -53,6 +53,11 @@ func main() {
 			Value: ".",
 			Usage: "Path to watch files from",
 		},
+		cli.StringSliceFlag{
+			Name:  "excludeDir,x",
+			Value: &cli.StringSlice{},
+			Usage: "Relative directories to exclude",
+		},
 		cli.BoolFlag{
 			Name:  "immediate,i",
 			Usage: "run the server immediately after it's built",
@@ -119,7 +124,7 @@ func MainAction(c *cli.Context) {
 	build(builder, runner, logger)
 
 	// scan for changes
-	scanChanges(c.GlobalString("path"), func(path string) {
+	scanChanges(c.GlobalString("path"), c.GlobalStringSlice("excludeDir"), func(path string) {
 		runner.Kill()
 		build(builder, runner, logger)
 	})
@@ -160,11 +165,16 @@ func build(builder gin.Builder, runner gin.Runner, logger *log.Logger) {
 
 type scanCallback func(path string)
 
-func scanChanges(watchPath string, cb scanCallback) {
+func scanChanges(watchPath string, excludeDirs []string, cb scanCallback) {
 	for {
 		filepath.Walk(watchPath, func(path string, info os.FileInfo, err error) error {
 			if path == ".git" {
 				return filepath.SkipDir
+			}
+			for _, x := range excludeDirs {
+				if x == path {
+					return filepath.SkipDir
+				}
 			}
 
 			// ignore hidden files
