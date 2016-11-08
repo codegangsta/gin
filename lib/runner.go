@@ -41,6 +41,9 @@ func (r *runner) Run() (*exec.Cmd, error) {
 
 	if r.command == nil || r.Exited() {
 		err := r.runBin()
+		if err != nil {
+			log.Print("Error running: ", err)
+		}
 		time.Sleep(250 * time.Millisecond)
 		return r.command, err
 	} else {
