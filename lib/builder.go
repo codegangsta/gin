@@ -35,6 +35,7 @@ func NewBuilder(execdir string, dir string, bin string, useGodep bool) Builder {
 
 	return &builder{execdir: execdir, dir: dir, binary: bin, useGodep: useGodep}
 }
+
 func (b *builder) Binary() string {
 	return b.binary
 }
