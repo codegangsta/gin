@@ -3,6 +3,7 @@ package gin
 import (
 	"fmt"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 	"strings"
 )
@@ -18,9 +19,10 @@ type builder struct {
 	binary   string
 	errors   string
 	useGodep bool
+	wd       string
 }
 
-func NewBuilder(dir string, bin string, useGodep bool) Builder {
+func NewBuilder(dir string, bin string, useGodep bool, wd string) Builder {
 	if len(bin) == 0 {
 		bin = "bin"
 	}
@@ -32,7 +34,7 @@ func NewBuilder(dir string, bin string, useGodep bool) Builder {
 		}
 	}
 
-	return &builder{dir: dir, binary: bin, useGodep: useGodep}
+	return &builder{dir: dir, binary: bin, useGodep: useGodep, wd: wd}
 }
 
 func (b *builder) Binary() string {
@@ -46,9 +48,9 @@ func (b *builder) Errors() string {
 func (b *builder) Build() error {
 	var command *exec.Cmd
 	if b.useGodep {
-		command = exec.Command("godep", "go", "build", "-o", b.binary)
+		command = exec.Command("godep", "go", "build", "-o", filepath.Join(b.wd, b.binary))
 	} else {
-		command = exec.Command("go", "build", "-o", b.binary)
+		command = exec.Command("go", "build", "-o", filepath.Join(b.wd, b.binary))
 	}
 	command.Dir = b.dir
 

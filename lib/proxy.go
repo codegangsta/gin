@@ -35,7 +35,7 @@ func (p *Proxy) Run(config *Config) error {
 	p.proxy = httputil.NewSingleHostReverseProxy(url)
 	p.to = url
 
-	p.listener, err = net.Listen("tcp", fmt.Sprintf(":%d", config.Port))
+	p.listener, err = net.Listen("tcp", fmt.Sprintf("%s:%d", config.Laddr, config.Port))
 	if err != nil {
 		return err
 	}

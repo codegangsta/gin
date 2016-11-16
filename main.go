@@ -4,9 +4,9 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/codegangsta/cli"
 	"github.com/codegangsta/envy/lib"
 	"github.com/codegangsta/gin/lib"
+	"gopkg.in/urfave/cli.v1"
 
 	"log"
 	"os"
@@ -22,6 +22,9 @@ var (
 	logger     = log.New(os.Stdout, "[gin] ", 0)
 	immediate  = false
 	buildError error
+	colorGreen = string([]byte{27, 91, 57, 55, 59, 51, 50, 59, 49, 109})
+	colorRed   = string([]byte{27, 91, 57, 55, 59, 51, 49, 59, 49, 109})
+	colorReset = string([]byte{27, 91, 48, 109})
 )
 
 func main() {
@@ -30,6 +33,11 @@ func main() {
 	app.Usage = "A live reload utility for Go web applications."
 	app.Action = MainAction
 	app.Flags = []cli.Flag{
+		cli.StringFlag{
+			Name:  "laddr,l",
+			Value: "",
+			Usage: "listening address for the proxy server",
+		},
 		cli.IntFlag{
 			Name:  "port,p",
 			Value: 3000,
@@ -55,6 +63,11 @@ func main() {
 			Value: ".",
 			Usage: fmt.Sprintf("Path or paths to watch files from (e.g. \".%csome/path%c../another/one\")",
 				os.PathListSeparator, os.PathListSeparator),
+		},
+		cli.StringSliceFlag{
+			Name:  "excludeDir,x",
+			Value: &cli.StringSlice{},
+			Usage: "Relative directories to exclude",
 		},
 		cli.BoolFlag{
 			Name:  "immediate,i",
@@ -84,6 +97,7 @@ func main() {
 }
 
 func MainAction(c *cli.Context) {
+	laddr := c.GlobalString("laddr")
 	port := c.GlobalInt("port")
 	appPort := strconv.Itoa(c.GlobalInt("appPort"))
 	immediate = c.GlobalBool("immediate")
@@ -99,12 +113,13 @@ func MainAction(c *cli.Context) {
 		logger.Fatal(err)
 	}
 
-	builder := gin.NewBuilder(c.GlobalString("cwd"), c.GlobalString("bin"), c.GlobalBool("godep"))
+	builder := gin.NewBuilder(c.GlobalString("path"), c.GlobalString("bin"), c.GlobalBool("godep"), wd)
 	runner := gin.NewRunner(filepath.Join(wd, builder.Binary()), c.Args()...)
 	runner.SetWriter(os.Stdout)
 	proxy := gin.NewProxy(builder, runner)
 
 	config := &gin.Config{
+		Laddr:   laddr,
 		Port:    port,
 		ProxyTo: "http://localhost:" + appPort,
 	}
@@ -114,7 +129,11 @@ func MainAction(c *cli.Context) {
 		logger.Fatal(err)
 	}
 
-	logger.Printf("listening on port %d\n", port)
+	if laddr != "" {
+		logger.Printf("listening at %s:%d\n", laddr, port)
+	} else {
+		logger.Printf("listening on port %d\n", port)
+	}
 
 	shutdown(runner)
 
@@ -122,7 +141,7 @@ func MainAction(c *cli.Context) {
 	build(builder, runner, logger)
 
 	// scan for changes
-	scanChanges(c.GlobalString("path"), func(path string) {
+	scanChanges(c.GlobalString("path"), c.GlobalStringSlice("excludeDir"), func(path string) {
 		runner.Kill()
 		build(builder, runner, logger)
 	})
@@ -145,12 +164,12 @@ func build(builder gin.Builder, runner gin.Runner, logger *log.Logger) {
 	err := builder.Build()
 	if err != nil {
 		buildError = err
-		logger.Println("ERROR! Build failed.")
+		logger.Printf("%sERROR! Build failed.%s\n", colorRed, colorReset)
 		fmt.Println(builder.Errors())
 	} else {
 		// print success only if there were errors before
 		if buildError != nil {
-			logger.Println("Build Successful")
+			logger.Printf("%sBuild Successful%s\n", colorGreen, colorReset)
 		}
 		buildError = nil
 		if immediate {
@@ -163,13 +182,18 @@ func build(builder gin.Builder, runner gin.Runner, logger *log.Logger) {
 
 type scanCallback func(path string)
 
-func scanChanges(watchPath string, cb scanCallback) {
+func scanChanges(watchPath string, excludeDirs []string, cb scanCallback) {
 	paths := filepath.SplitList(watchPath)
 	for {
 		for _, path := range paths {
 			filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
 				if path == ".git" {
 					return filepath.SkipDir
+				}
+				for _, x := range excludeDirs {
+					if x == path {
+						return filepath.SkipDir
+					}
 				}
 
 				// ignore hidden files
