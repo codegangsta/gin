@@ -76,6 +76,14 @@ func main() {
 			Name:  "buildArgs",
 			Usage: "Additional go build arguments",
 		},
+		cli.StringFlag{
+			Name:  "certFile",
+			Usage: "TLS Certificate",
+		},
+		cli.StringFlag{
+			Name:  "keyFile",
+			Usage: "TLS Certificate Key",
+		},
 	}
 	app.Commands = []cli.Command{
 		{
@@ -100,6 +108,8 @@ func MainAction(c *cli.Context) {
 	port := c.GlobalInt("port")
 	appPort := strconv.Itoa(c.GlobalInt("appPort"))
 	immediate = c.GlobalBool("immediate")
+	keyFile := c.GlobalString("keyFile")
+	certFile := c.GlobalString("certFile")
 
 	// Bootstrap the environment
 	envy.Bootstrap()
@@ -123,9 +133,11 @@ func MainAction(c *cli.Context) {
 	proxy := gin.NewProxy(builder, runner)
 
 	config := &gin.Config{
-		Laddr:   laddr,
-		Port:    port,
-		ProxyTo: "http://localhost:" + appPort,
+		Laddr:    laddr,
+		Port:     port,
+		ProxyTo:  "http://localhost:" + appPort,
+		KeyFile:  keyFile,
+		CertFile: certFile,
 	}
 
 	err = proxy.Run(config)
