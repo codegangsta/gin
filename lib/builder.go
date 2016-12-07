@@ -15,14 +15,15 @@ type Builder interface {
 }
 
 type builder struct {
-	dir      string
-	binary   string
-	errors   string
-	useGodep bool
-	wd       string
+	dir       string
+	binary    string
+	errors    string
+	useGodep  bool
+	wd        string
+	buildArgs []string
 }
 
-func NewBuilder(dir string, bin string, useGodep bool, wd string) Builder {
+func NewBuilder(dir string, bin string, useGodep bool, wd string, buildArgs []string) Builder {
 	if len(bin) == 0 {
 		bin = "bin"
 	}
@@ -34,7 +35,7 @@ func NewBuilder(dir string, bin string, useGodep bool, wd string) Builder {
 		}
 	}
 
-	return &builder{dir: dir, binary: bin, useGodep: useGodep, wd: wd}
+	return &builder{dir: dir, binary: bin, useGodep: useGodep, wd: wd, buildArgs: buildArgs}
 }
 
 func (b *builder) Binary() string {
@@ -46,12 +47,14 @@ func (b *builder) Errors() string {
 }
 
 func (b *builder) Build() error {
+	args := append([]string{"go", "build", "-o", filepath.Join(b.wd, b.binary)}, b.buildArgs...)
+
 	var command *exec.Cmd
 	if b.useGodep {
-		command = exec.Command("godep", "go", "build", "-o", filepath.Join(b.wd, b.binary))
-	} else {
-		command = exec.Command("go", "build", "-o", filepath.Join(b.wd, b.binary))
+		args = append([]string{"godep"}, args...)
 	}
+	command = exec.Command(args[0], args[1:]...)
+
 	command.Dir = b.dir
 
 	output, err := command.CombinedOutput()
