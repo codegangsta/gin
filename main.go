@@ -4,9 +4,10 @@ import (
 	"errors"
 	"fmt"
 
-	"gopkg.in/urfave/cli.v1"
 	"github.com/codegangsta/envy/lib"
 	"github.com/codegangsta/gin/lib"
+	shellwords "github.com/mattn/go-shellwords"
+	"gopkg.in/urfave/cli.v1"
 
 	"log"
 	"os"
@@ -71,6 +72,18 @@ func main() {
 			Name:  "godep,g",
 			Usage: "use godep when building",
 		},
+		cli.StringFlag{
+			Name:  "buildArgs",
+			Usage: "Additional go build arguments",
+		},
+		cli.StringFlag{
+			Name:  "certFile",
+			Usage: "TLS Certificate",
+		},
+		cli.StringFlag{
+			Name:  "keyFile",
+			Usage: "TLS Certificate Key",
+		},
 	}
 	app.Commands = []cli.Command{
 		{
@@ -95,6 +108,8 @@ func MainAction(c *cli.Context) {
 	port := c.GlobalInt("port")
 	appPort := strconv.Itoa(c.GlobalInt("appPort"))
 	immediate = c.GlobalBool("immediate")
+	keyFile := c.GlobalString("keyFile")
+	certFile := c.GlobalString("certFile")
 
 	// Bootstrap the environment
 	envy.Bootstrap()
@@ -107,15 +122,22 @@ func MainAction(c *cli.Context) {
 		logger.Fatal(err)
 	}
 
-	builder := gin.NewBuilder(c.GlobalString("path"), c.GlobalString("bin"), c.GlobalBool("godep"), wd)
+	buildArgs, err := shellwords.Parse(c.GlobalString("buildArgs"))
+	if err != nil {
+		logger.Fatal(err)
+	}
+
+	builder := gin.NewBuilder(c.GlobalString("path"), c.GlobalString("bin"), c.GlobalBool("godep"), wd, buildArgs)
 	runner := gin.NewRunner(filepath.Join(wd, builder.Binary()), c.Args()...)
 	runner.SetWriter(os.Stdout)
 	proxy := gin.NewProxy(builder, runner)
 
 	config := &gin.Config{
-		Laddr:   laddr,
-		Port:    port,
-		ProxyTo: "http://localhost:" + appPort,
+		Laddr:    laddr,
+		Port:     port,
+		ProxyTo:  "http://localhost:" + appPort,
+		KeyFile:  keyFile,
+		CertFile: certFile,
 	}
 
 	err = proxy.Run(config)
