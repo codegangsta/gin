@@ -69,6 +69,10 @@ func main() {
 			Usage: "run the server immediately after it's built",
 		},
 		cli.BoolFlag{
+			Name:  "all",
+			Usage: "reloads whenever any file changes, as opposed to reloading only on .go file change",
+		},
+		cli.BoolFlag{
 			Name:  "godep,g",
 			Usage: "use godep when building",
 		},
@@ -106,6 +110,7 @@ func main() {
 func MainAction(c *cli.Context) {
 	laddr := c.GlobalString("laddr")
 	port := c.GlobalInt("port")
+	all := c.GlobalBool("all")
 	appPort := strconv.Itoa(c.GlobalInt("appPort"))
 	immediate = c.GlobalBool("immediate")
 	keyFile := c.GlobalString("keyFile")
@@ -157,7 +162,7 @@ func MainAction(c *cli.Context) {
 	build(builder, runner, logger)
 
 	// scan for changes
-	scanChanges(c.GlobalString("path"), c.GlobalStringSlice("excludeDir"), func(path string) {
+	scanChanges(c.GlobalString("path"), c.GlobalStringSlice("excludeDir"), all, func(path string) {
 		runner.Kill()
 		build(builder, runner, logger)
 	})
@@ -198,7 +203,7 @@ func build(builder gin.Builder, runner gin.Runner, logger *log.Logger) {
 
 type scanCallback func(path string)
 
-func scanChanges(watchPath string, excludeDirs []string, cb scanCallback) {
+func scanChanges(watchPath string, excludeDirs []string, allFiles bool, cb scanCallback) {
 	for {
 		filepath.Walk(watchPath, func(path string, info os.FileInfo, err error) error {
 			if path == ".git" {
@@ -215,7 +220,7 @@ func scanChanges(watchPath string, excludeDirs []string, cb scanCallback) {
 				return nil
 			}
 
-			if filepath.Ext(path) == ".go" && info.ModTime().After(startTime) {
+			if (allFiles || filepath.Ext(path) == ".go") && info.ModTime().After(startTime) {
 				cb(path)
 				startTime = time.Now()
 				return errors.New("done")
