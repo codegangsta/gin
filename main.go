@@ -206,7 +206,7 @@ type scanCallback func(path string)
 func scanChanges(watchPath string, excludeDirs []string, allFiles bool, cb scanCallback) {
 	for {
 		filepath.Walk(watchPath, func(path string, info os.FileInfo, err error) error {
-			if path == ".git" {
+			if path == ".git" && info.IsDir(){
 				return filepath.SkipDir
 			}
 			for _, x := range excludeDirs {
