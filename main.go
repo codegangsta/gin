@@ -57,6 +57,11 @@ func main() {
 		cli.StringFlag{
 			Name:  "path,t",
 			Value: ".",
+			Usage: "Path to build project from",
+		},
+		cli.StringSliceFlag{
+			Name:  "watchPaths,wt",
+			Value: &cli.StringSlice{"."},
 			Usage: "Path to watch files from",
 		},
 		cli.StringSliceFlag{
@@ -162,7 +167,7 @@ func MainAction(c *cli.Context) {
 	build(builder, runner, logger)
 
 	// scan for changes
-	scanChanges(c.GlobalString("path"), c.GlobalStringSlice("excludeDir"), all, func(path string) {
+	scanChanges(c.GlobalStringSlice("watchPaths"), c.GlobalStringSlice("excludeDir"), all, func(path string) {
 		runner.Kill()
 		build(builder, runner, logger)
 	})
@@ -203,31 +208,34 @@ func build(builder gin.Builder, runner gin.Runner, logger *log.Logger) {
 
 type scanCallback func(path string)
 
-func scanChanges(watchPath string, excludeDirs []string, allFiles bool, cb scanCallback) {
+func scanChanges(watchPaths []string, excludeDirs []string, allFiles bool, cb scanCallback) {
 	for {
-		filepath.Walk(watchPath, func(path string, info os.FileInfo, err error) error {
-			if path == ".git" && info.IsDir(){
-				return filepath.SkipDir
-			}
-			for _, x := range excludeDirs {
-				if x == path {
+		for _, watchPath := range watchPaths {
+
+			filepath.Walk(watchPath, func(path string, info os.FileInfo, err error) error {
+				if path == ".git" && info.IsDir() {
 					return filepath.SkipDir
 				}
-			}
+				for _, x := range excludeDirs {
+					if x == path {
+						return filepath.SkipDir
+					}
+				}
 
-			// ignore hidden files
-			if filepath.Base(path)[0] == '.' {
+				// ignore hidden files
+				if filepath.Base(path)[0] == '.' {
+					return nil
+				}
+
+				if (allFiles || filepath.Ext(path) == ".go") && info.ModTime().After(startTime) {
+					cb(path)
+					startTime = time.Now()
+					return errors.New("done")
+				}
+
 				return nil
-			}
-
-			if (allFiles || filepath.Ext(path) == ".go") && info.ModTime().After(startTime) {
-				cb(path)
-				startTime = time.Now()
-				return errors.New("done")
-			}
-
-			return nil
-		})
+			})
+		}
 		time.Sleep(500 * time.Millisecond)
 	}
 }
