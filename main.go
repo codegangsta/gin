@@ -59,6 +59,11 @@ func main() {
 			Value: ".",
 			Usage: "Path to watch files from",
 		},
+		cli.StringFlag{
+			Name:  "build,d",
+			Value: "",
+			Usage: "Path to build files from (defaults to same value as --path)",
+		},
 		cli.StringSliceFlag{
 			Name:  "excludeDir,x",
 			Value: &cli.StringSlice{},
@@ -132,7 +137,11 @@ func MainAction(c *cli.Context) {
 		logger.Fatal(err)
 	}
 
-	builder := gin.NewBuilder(c.GlobalString("path"), c.GlobalString("bin"), c.GlobalBool("godep"), wd, buildArgs)
+	buildPath := c.GlobalString("build")
+	if buildPath == "" {
+		buildPath = c.GlobalString("path")
+	}
+	builder := gin.NewBuilder(buildPath, c.GlobalString("bin"), c.GlobalBool("godep"), wd, buildArgs)
 	runner := gin.NewRunner(filepath.Join(wd, builder.Binary()), c.Args()...)
 	runner.SetWriter(os.Stdout)
 	proxy := gin.NewProxy(builder, runner)
