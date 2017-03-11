@@ -64,7 +64,12 @@ func (r *runner) Kill() error {
 	if r.command != nil && r.command.Process != nil {
 		done := make(chan error)
 		go func() {
-			r.command.Wait()
+			if err := r.command.Wait(); err != nil {
+				// If wait fails to run we kill after a timeout of 3 seconds below, so
+				// this is okay.
+				log.Println("failed to run wait: ", err)
+				return
+			}
 			close(done)
 		}()
 
