@@ -127,9 +127,13 @@ func MainAction(c *cli.Context) {
 	// Set the PORT env
 	os.Setenv("PORT", appPort)
 
+	// Working directory is where we expect the built output to live.
 	wd, err := os.Getwd()
 	if err != nil {
 		logger.Fatal(err)
+	}
+	if c.GlobalString("path") != "." {
+		wd = c.GlobalString("path")
 	}
 
 	buildArgs, err := shellwords.Parse(c.GlobalString("buildArgs"))
