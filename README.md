@@ -24,6 +24,28 @@ Then verify that `gin` was installed correctly:
 ```shell
 gin -h
 ```
+## Basic usage 
+```shell
+gin run main.go
+```
+Options
+```
+   --laddr value, -l value       listening address for the proxy server
+   --port value, -p value        port for the proxy server (default: 3000)
+   --appPort value, -a value     port for the Go web server (default: 3001)
+   --bin value, -b value         name of generated binary file (default: "gin-bin")
+   --path value, -t value        Path to watch files from (default: ".")
+   --build value, -d value       Path to build files from (defaults to same value as --path)
+   --excludeDir value, -x value  Relative directories to exclude
+   --immediate, -i               run the server immediately after it's built
+   --all                         reloads whenever any file changes, as opposed to reloading only on .go file change
+   --godep, -g                   use godep when building
+   --buildArgs value             Additional go build arguments
+   --certFile value              TLS Certificate
+   --keyFile value               TLS Certificate Key
+   --help, -h                    show help
+   --version, -v                 print the version
+```
 
 ## Supporting Gin in Your Web app
 `gin` assumes that your web app binds itself to the `PORT` environment 
