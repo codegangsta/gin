@@ -160,9 +160,9 @@ func MainAction(c *cli.Context) {
 	}
 
 	if laddr != "" {
-		logger.Printf("listening at %s:%d\n", laddr, port)
+		logger.Printf("Listening at %s:%d\n", laddr, port)
 	} else {
-		logger.Printf("listening on port %d\n", port)
+		logger.Printf("Listening on port %d\n", port)
 	}
 
 	shutdown(runner)
@@ -191,17 +191,16 @@ func EnvAction(c *cli.Context) {
 }
 
 func build(builder gin.Builder, runner gin.Runner, logger *log.Logger) {
+	logger.Println("Building...")
+
 	err := builder.Build()
 	if err != nil {
 		buildError = err
-		logger.Printf("%sERROR! Build failed.%s\n", colorRed, colorReset)
+		logger.Printf("%sBuild failed%s\n", colorRed, colorReset)
 		fmt.Println(builder.Errors())
 	} else {
-		// print success only if there were errors before
-		if buildError != nil {
-			logger.Printf("%sBuild Successful%s\n", colorGreen, colorReset)
-		}
 		buildError = nil
+		logger.Printf("%sBuild finished%s\n", colorGreen, colorReset)
 		if immediate {
 			runner.Run()
 		}
@@ -215,7 +214,7 @@ type scanCallback func(path string)
 func scanChanges(watchPath string, excludeDirs []string, allFiles bool, cb scanCallback) {
 	for {
 		filepath.Walk(watchPath, func(path string, info os.FileInfo, err error) error {
-			if path == ".git" && info.IsDir(){
+			if path == ".git" && info.IsDir() {
 				return filepath.SkipDir
 			}
 			for _, x := range excludeDirs {
