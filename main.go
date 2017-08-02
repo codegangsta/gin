@@ -106,6 +106,12 @@ func main() {
 			EnvVar: "GIN_KEY_FILE",
 			Usage:  "TLS Certificate Key",
 		},
+		cli.StringFlag{
+			Name:   "logPrefix",
+			EnvVar: "GIN_LOG_PREFIX",
+			Usage:  "Log prefix",
+			Value:  "gin",
+		},
 	}
 	app.Commands = []cli.Command{
 		{
@@ -133,6 +139,9 @@ func MainAction(c *cli.Context) {
 	immediate = c.GlobalBool("immediate")
 	keyFile := c.GlobalString("keyFile")
 	certFile := c.GlobalString("certFile")
+	logPrefix := c.GlobalString("logPrefix")
+
+	logger.SetPrefix(fmt.Sprintf("[%s] ", logPrefix))
 
 	// Bootstrap the environment
 	envy.Bootstrap()
@@ -191,6 +200,9 @@ func MainAction(c *cli.Context) {
 }
 
 func EnvAction(c *cli.Context) {
+	logPrefix := c.GlobalString("logPrefix")
+	logger.SetPrefix(fmt.Sprintf("[%s] ", logPrefix))
+
 	// Bootstrap the environment
 	env, err := envy.Bootstrap()
 	if err != nil {
