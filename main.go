@@ -9,11 +9,13 @@ import (
 	shellwords "github.com/mattn/go-shellwords"
 	"gopkg.in/urfave/cli.v1"
 
+	"github.com/0xAX/notificator"
 	"log"
 	"os"
 	"os/signal"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 )
@@ -26,6 +28,7 @@ var (
 	colorGreen = string([]byte{27, 91, 57, 55, 59, 51, 50, 59, 49, 109})
 	colorRed   = string([]byte{27, 91, 57, 55, 59, 51, 49, 59, 49, 109})
 	colorReset = string([]byte{27, 91, 48, 109})
+	notifier   = notificator.New(notificator.Options{AppName: "Gin Build"})
 )
 
 func main() {
@@ -223,12 +226,15 @@ func build(builder gin.Builder, runner gin.Runner, logger *log.Logger) {
 		buildError = err
 		logger.Printf("%sBuild failed%s\n", colorRed, colorReset)
 		fmt.Println(builder.Errors())
+		buildErrors := strings.Split(builder.Errors(), "\n")
+		notifier.Push("Build FAILED!", buildErrors[1], "", notificator.UR_CRITICAL)
 	} else {
 		buildError = nil
 		logger.Printf("%sBuild finished%s\n", colorGreen, colorReset)
 		if immediate {
 			runner.Run()
 		}
+		notifier.Push("Build Succeded", "Build Finished!", "", notificator.UR_NORMAL)
 	}
 
 	time.Sleep(100 * time.Millisecond)
