@@ -221,6 +221,7 @@ func EnvAction(c *cli.Context) {
 func build(builder gin.Builder, runner gin.Runner, logger *log.Logger) {
 	logger.Println("Building...")
 
+	notifier.Push("Build Started!", "Building "+builder.Binary()+"...", "", notificator.UR_NORMAL)
 	err := builder.Build()
 	if err != nil {
 		buildError = err
@@ -234,7 +235,7 @@ func build(builder gin.Builder, runner gin.Runner, logger *log.Logger) {
 		if immediate {
 			runner.Run()
 		}
-		notifier.Push("Build Succeded", "Build Finished!", "", notificator.UR_NORMAL)
+		notifier.Push("Build Succeded", "Build Finished!", "", notificator.UR_CRITICAL)
 	}
 
 	time.Sleep(100 * time.Millisecond)
