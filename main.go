@@ -228,14 +228,18 @@ func build(builder gin.Builder, runner gin.Runner, logger *log.Logger) {
 		logger.Printf("%sBuild failed%s\n", colorRed, colorReset)
 		fmt.Println(builder.Errors())
 		buildErrors := strings.Split(builder.Errors(), "\n")
-		notifier.Push("Build FAILED!", buildErrors[1], "", notificator.UR_CRITICAL)
+		if err := notifier.Push("Build FAILED!", buildErrors[1], "", notificator.UR_CRITICAL); err != nil {
+			logger.Println("Notification send failed")
+		}
 	} else {
 		buildError = nil
 		logger.Printf("%sBuild finished%s\n", colorGreen, colorReset)
 		if immediate {
 			runner.Run()
 		}
-		notifier.Push("Build Succeded", "Build Finished!", "", notificator.UR_CRITICAL)
+		if err := notifier.Push("Build Succeded", "Build Finished!", "", notificator.UR_CRITICAL); err != nil {
+			logger.Println("Notification send failed")
+		}
 	}
 
 	time.Sleep(100 * time.Millisecond)
