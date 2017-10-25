@@ -44,6 +44,7 @@ Options
    --certFile value              TLS Certificate
    --keyFile value               TLS Certificate Key
    --logPrefix value             Setup custom log prefix
+   --disableNotifications        disable desktop notifications
    --help, -h                    show help
    --version, -v                 print the version
 ```

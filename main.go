@@ -21,14 +21,15 @@ import (
 )
 
 var (
-	startTime  = time.Now()
-	logger     = log.New(os.Stdout, "[gin] ", 0)
-	immediate  = false
-	buildError error
-	colorGreen = string([]byte{27, 91, 57, 55, 59, 51, 50, 59, 49, 109})
-	colorRed   = string([]byte{27, 91, 57, 55, 59, 51, 49, 59, 49, 109})
-	colorReset = string([]byte{27, 91, 48, 109})
-	notifier   = notificator.New(notificator.Options{AppName: "Gin Build"})
+	startTime     = time.Now()
+	logger        = log.New(os.Stdout, "[gin] ", 0)
+	immediate     = false
+	buildError    error
+	colorGreen    = string([]byte{27, 91, 57, 55, 59, 51, 50, 59, 49, 109})
+	colorRed      = string([]byte{27, 91, 57, 55, 59, 51, 49, 59, 49, 109})
+	colorReset    = string([]byte{27, 91, 48, 109})
+	notifier      = notificator.New(notificator.Options{AppName: "Gin Build"})
+	notifications = true
 )
 
 func main() {
@@ -115,6 +116,11 @@ func main() {
 			Usage:  "Log prefix",
 			Value:  "gin",
 		},
+		cli.BoolFlag{
+			Name:   "disableNotifications",
+			EnvVar: "GIN_DISABLE_NOTIFICATIONS",
+			Usage:  "Whether desktop notifications should be disabled",
+		},
 	}
 	app.Commands = []cli.Command{
 		{
@@ -143,6 +149,7 @@ func MainAction(c *cli.Context) {
 	keyFile := c.GlobalString("keyFile")
 	certFile := c.GlobalString("certFile")
 	logPrefix := c.GlobalString("logPrefix")
+	notifications = !c.GlobalBool("disableNotifications")
 
 	logger.SetPrefix(fmt.Sprintf("[%s] ", logPrefix))
 
@@ -221,15 +228,19 @@ func EnvAction(c *cli.Context) {
 func build(builder gin.Builder, runner gin.Runner, logger *log.Logger) {
 	logger.Println("Building...")
 
-	notifier.Push("Build Started!", "Building "+builder.Binary()+"...", "", notificator.UR_NORMAL)
+	if notifications {
+		notifier.Push("Build Started!", "Building "+builder.Binary()+"...", "", notificator.UR_NORMAL)
+	}
 	err := builder.Build()
 	if err != nil {
 		buildError = err
 		logger.Printf("%sBuild failed%s\n", colorRed, colorReset)
 		fmt.Println(builder.Errors())
 		buildErrors := strings.Split(builder.Errors(), "\n")
-		if err := notifier.Push("Build FAILED!", buildErrors[1], "", notificator.UR_CRITICAL); err != nil {
-			logger.Println("Notification send failed")
+		if notifications {
+			if err := notifier.Push("Build FAILED!", buildErrors[1], "", notificator.UR_CRITICAL); err != nil {
+				logger.Println("Notification send failed")
+			}
 		}
 	} else {
 		buildError = nil
@@ -237,8 +248,10 @@ func build(builder gin.Builder, runner gin.Runner, logger *log.Logger) {
 		if immediate {
 			runner.Run()
 		}
-		if err := notifier.Push("Build Succeded", "Build Finished!", "", notificator.UR_CRITICAL); err != nil {
-			logger.Println("Notification send failed")
+		if notifications {
+			if err := notifier.Push("Build Succeded", "Build Finished!", "", notificator.UR_CRITICAL); err != nil {
+				logger.Println("Notification send failed")
+			}
 		}
 	}
 
