@@ -29,7 +29,7 @@ var (
 	colorRed      = string([]byte{27, 91, 57, 55, 59, 51, 49, 59, 49, 109})
 	colorReset    = string([]byte{27, 91, 48, 109})
 	notifier      = notificator.New(notificator.Options{AppName: "Gin Build"})
-	notifications = true
+	notifications = false
 )
 
 func main() {
@@ -117,9 +117,9 @@ func main() {
 			Value:  "gin",
 		},
 		cli.BoolFlag{
-			Name:   "disableNotifications",
-			EnvVar: "GIN_DISABLE_NOTIFICATIONS",
-			Usage:  "Whether desktop notifications should be disabled",
+			Name:   "notifications",
+			EnvVar: "GIN_NOTIFICATIONS",
+			Usage:  "Enables desktop notifications",
 		},
 	}
 	app.Commands = []cli.Command{
@@ -149,7 +149,7 @@ func MainAction(c *cli.Context) {
 	keyFile := c.GlobalString("keyFile")
 	certFile := c.GlobalString("certFile")
 	logPrefix := c.GlobalString("logPrefix")
-	notifications = !c.GlobalBool("disableNotifications")
+	notifications = c.GlobalBool("notifications")
 
 	logger.SetPrefix(fmt.Sprintf("[%s] ", logPrefix))
 
