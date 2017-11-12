@@ -3,13 +3,8 @@ package main
 import (
 	"errors"
 	"fmt"
+	"runtime"
 
-	"github.com/codegangsta/envy/lib"
-	"github.com/codegangsta/gin/lib"
-	shellwords "github.com/mattn/go-shellwords"
-	"gopkg.in/urfave/cli.v1"
-
-	"github.com/0xAX/notificator"
 	"log"
 	"os"
 	"os/signal"
@@ -18,6 +13,12 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"github.com/0xAX/notificator"
+	"github.com/codegangsta/envy/lib"
+	"github.com/codegangsta/gin/lib"
+	shellwords "github.com/mattn/go-shellwords"
+	"gopkg.in/urfave/cli.v1"
 )
 
 var (
@@ -63,7 +64,7 @@ func main() {
 			Usage:  "name of generated binary file",
 		},
 		cli.StringFlag{
-			Name:   "path,t",
+			Name:   "path",
 			Value:  ".",
 			EnvVar: "GIN_PATH",
 			Usage:  "Path to watch files from",
@@ -73,6 +74,12 @@ func main() {
 			Value:  "",
 			EnvVar: "GIN_BUILD",
 			Usage:  "Path to build files from (defaults to same value as --path)",
+		},
+		cli.StringFlag{
+			Name:   "test",
+			Value:  "",
+			EnvVar: "GIN_TEST",
+			Usage:  "Path to test files from (defaults to same value as --path)",
 		},
 		cli.StringSliceFlag{
 			Name:   "excludeDir,x",
@@ -99,6 +106,11 @@ func main() {
 			Name:   "buildArgs",
 			EnvVar: "GIN_BUILD_ARGS",
 			Usage:  "Additional go build arguments",
+		},
+		cli.StringFlag{
+			Name:   "testArgs",
+			EnvVar: "GIN_TEST_ARGS",
+			Usage:  "Additional go test arguments",
 		},
 		cli.StringFlag{
 			Name:   "certFile",
@@ -128,6 +140,12 @@ func main() {
 			ShortName: "r",
 			Usage:     "Run the gin proxy in the current working directory",
 			Action:    MainAction,
+		},
+		{
+			Name:      "test",
+			ShortName: "t",
+			Usage:     "Test in the current working directory",
+			Action:    TestAction,
 		},
 		{
 			Name:      "env",
@@ -206,6 +224,36 @@ func MainAction(c *cli.Context) {
 	scanChanges(c.GlobalString("path"), c.GlobalStringSlice("excludeDir"), all, func(path string) {
 		runner.Kill()
 		build(builder, runner, logger)
+	})
+}
+
+func TestAction(c *cli.Context) {
+	all := c.GlobalBool("all")
+	logPrefix := c.GlobalString("logPrefix")
+	logger.SetPrefix(fmt.Sprintf("[%s] ", logPrefix))
+	if runtime.GOOS == "windows" {
+		logger.Fatal("This feature haven't support windows.")
+	}
+
+	// Bootstrap the environment
+	envy.Bootstrap()
+
+	testArgs, err := shellwords.Parse(c.GlobalString("testArgs"))
+	if err != nil {
+		logger.Fatal(err)
+	}
+	testPath := c.GlobalString("test")
+	if testPath == "" {
+		testPath = c.GlobalString("path")
+	}
+	tester := gin.NewTester(testPath, testArgs)
+	err = tester.Run()
+	if err != nil {
+		logger.Print(err)
+	}
+
+	scanChanges(c.GlobalString("path"), c.GlobalStringSlice("excludeDir"), all, func(path string) {
+		tester.Run()
 	})
 }
 
