@@ -97,24 +97,16 @@ func (r *runner) Exited() bool {
 
 func (r *runner) runBin() error {
 	r.command = exec.Command(r.bin, r.args...)
-	stdout, err := r.command.StdoutPipe()
-	if err != nil {
-		return err
-	}
-	stderr, err := r.command.StderrPipe()
-	if err != nil {
-		return err
-	}
+	r.command.Stdout = r.writer // Eascaped ansi color code output
+	r.command.Stderr = r.writer
 
-	err = r.command.Start()
+	err := r.command.Start()
 	if err != nil {
 		return err
 	}
 
 	r.starttime = time.Now()
 
-	go io.Copy(r.writer, stdout)
-	go io.Copy(r.writer, stderr)
 	go r.command.Wait()
 
 	return nil
