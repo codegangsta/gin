@@ -85,8 +85,8 @@ func Test_Runner_SetWriter(t *testing.T) {
 	expect(t, err, nil)
 
 	if runtime.GOOS == "windows" {
-		expect(t, buff.String(), "Hello world\r\n")
+		expect(t, buff.String(), "\\x1B[01;94mHello world\\x1B[0m\r\n")
 	} else {
-		expect(t, buff.String(), "Hello world\n")
+		expect(t, buff.String(), "\x1B[01;94mHello world\x1B[0m\n") // Escaped ansi color code on bash
 	}
 }
