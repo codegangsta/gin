@@ -9,7 +9,6 @@ import (
 	shellwords "github.com/mattn/go-shellwords"
 	"gopkg.in/urfave/cli.v1"
 
-	"github.com/0xAX/notificator"
 	"log"
 	"os"
 	"os/signal"
@@ -18,6 +17,8 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"github.com/0xAX/notificator"
 )
 
 var (
@@ -278,6 +279,7 @@ func scanChanges(watchPath string, excludeDirs []string, allFiles bool, cb scanC
 			}
 
 			if (allFiles || filepath.Ext(path) == ".go") && info.ModTime().After(startTime) {
+				logger.Printf("Change detected on: %s\n", path)
 				cb(path)
 				startTime = time.Now()
 				return errors.New("done")
