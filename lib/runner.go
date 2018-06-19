@@ -115,8 +115,11 @@ func (r *runner) runBin() error {
 
 	go io.Copy(r.writer, stdout)
 	go io.Copy(r.writer, stderr)
-	go r.command.Wait()
-
+	go func() {
+		r.command.Wait()
+		stdout.Close()
+		stderr.Close()
+	}()
 	return nil
 }
 
