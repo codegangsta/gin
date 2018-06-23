@@ -3,13 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-
-	"github.com/codegangsta/envy/lib"
-	"github.com/codegangsta/gin/lib"
-	shellwords "github.com/mattn/go-shellwords"
-	"gopkg.in/urfave/cli.v1"
-
-	"github.com/0xAX/notificator"
 	"log"
 	"os"
 	"os/signal"
@@ -18,6 +11,12 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"github.com/0xAX/notificator"
+	"github.com/codegangsta/envy/lib"
+	"github.com/codegangsta/gin/lib"
+	shellwords "github.com/mattn/go-shellwords"
+	"gopkg.in/urfave/cli.v1"
 )
 
 var (
@@ -44,15 +43,13 @@ func main() {
 			EnvVar: "GIN_LADDR",
 			Usage:  "listening address for the proxy server",
 		},
-		cli.IntFlag{
+		cli.IntSliceFlag{
 			Name:   "port,p",
-			Value:  3000,
 			EnvVar: "GIN_PORT",
 			Usage:  "port for the proxy server",
 		},
-		cli.IntFlag{
+		cli.IntSliceFlag{
 			Name:   "appPort,a",
-			Value:  3001,
 			EnvVar: "BIN_APP_PORT",
 			Usage:  "port for the Go web server",
 		},
@@ -142,14 +139,24 @@ func main() {
 
 func MainAction(c *cli.Context) {
 	laddr := c.GlobalString("laddr")
-	port := c.GlobalInt("port")
+	ports := c.GlobalIntSlice("port")
 	all := c.GlobalBool("all")
-	appPort := strconv.Itoa(c.GlobalInt("appPort"))
+	appPorts := c.GlobalIntSlice("appPort")
 	immediate = c.GlobalBool("immediate")
 	keyFile := c.GlobalString("keyFile")
 	certFile := c.GlobalString("certFile")
 	logPrefix := c.GlobalString("logPrefix")
 	notifications = c.GlobalBool("notifications")
+
+	if len(ports) == 0 {
+		ports = append(ports, 3000)
+	}
+	if len(appPorts) == 0 {
+		appPorts = append(appPorts, 3001)
+	}
+	if len(ports) != len(appPorts) {
+		logger.Fatal("There must be the same amount of values in --port and --appPort")
+	}
 
 	logger.SetPrefix(fmt.Sprintf("[%s] ", logPrefix))
 
@@ -157,7 +164,7 @@ func MainAction(c *cli.Context) {
 	envy.Bootstrap()
 
 	// Set the PORT env
-	os.Setenv("PORT", appPort)
+	os.Setenv("PORT", strconv.Itoa(appPorts[0]))
 
 	wd, err := os.Getwd()
 	if err != nil {
@@ -176,25 +183,27 @@ func MainAction(c *cli.Context) {
 	builder := gin.NewBuilder(buildPath, c.GlobalString("bin"), c.GlobalBool("godep"), wd, buildArgs)
 	runner := gin.NewRunner(filepath.Join(wd, builder.Binary()), c.Args()...)
 	runner.SetWriter(os.Stdout)
-	proxy := gin.NewProxy(builder, runner)
 
-	config := &gin.Config{
-		Laddr:    laddr,
-		Port:     port,
-		ProxyTo:  "http://localhost:" + appPort,
-		KeyFile:  keyFile,
-		CertFile: certFile,
-	}
+	for i := range ports {
+		proxy := gin.NewProxy(builder, runner)
 
-	err = proxy.Run(config)
-	if err != nil {
-		logger.Fatal(err)
-	}
+		config := &gin.Config{
+			Laddr:    laddr,
+			Port:     ports[i],
+			ProxyTo:  fmt.Sprintf("http://localhost:%d", appPorts[i]),
+			KeyFile:  keyFile,
+			CertFile: certFile,
+		}
 
-	if laddr != "" {
-		logger.Printf("Listening at %s:%d\n", laddr, port)
-	} else {
-		logger.Printf("Listening on port %d\n", port)
+		err = proxy.Run(config)
+		if err != nil {
+			logger.Fatal(err)
+		}
+		if laddr != "" {
+			logger.Printf("Listening at %s:%d\n", laddr, ports[i])
+		} else {
+			logger.Printf("Listening on port %d\n", ports[i])
+		}
 	}
 
 	shutdown(runner)
