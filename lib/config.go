@@ -7,11 +7,12 @@ import (
 )
 
 type Config struct {
-	Laddr    string `json:"laddr"`
-	Port     int    `json:"port"`
-	ProxyTo  string `json:"proxy_to"`
-	KeyFile  string `json:"key_file"`
-	CertFile string `json:"cert_file"`
+	Laddr       string            `json:"laddr"`
+	Port        int               `json:"port"`
+	ProxyTo     string            `json:"proxy_to"`
+	KeyFile     string            `json:"key_file"`
+	CertFile    string            `json:"cert_file"`
+	HttpHeaders map[string]string `json:"http_headers"`
 }
 
 func LoadConfig(path string) (*Config, error) {
