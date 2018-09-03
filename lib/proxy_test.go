@@ -112,3 +112,31 @@ func Test_Proxying_Build_Errors(t *testing.T) {
 	res.Body.Close()
 	expect(t, fmt.Sprintf("%s", errors), "Foo bar here are some errors")
 }
+
+func Test_Proxying_HttpHeaders(t *testing.T) {
+	builder := NewMockBuilder()
+	runner := NewMockRunner()
+	proxy := gin.NewProxy(builder, runner)
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintln(w, "Hello world")
+	}))
+	defer ts.Close()
+
+	config := &gin.Config{
+		Port:        5678,
+		ProxyTo:     ts.URL,
+		HttpHeaders: map[string]string{"Server": "gin", "X-Version": "dev"},
+	}
+
+	err := proxy.Run(config)
+	defer proxy.Close()
+	expect(t, err, nil)
+
+	client := &http.Client{}
+	req, _ := http.NewRequest("GET", "http://localhost:5678", nil)
+	res, _ := client.Do(req)
+
+	expect(t, res.Header.Get("Server"), "gin")
+	expect(t, res.Header.Get("X-Version"), "dev")
+}
