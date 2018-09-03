@@ -215,6 +215,7 @@ func MainAction(c *cli.Context) {
 		build(builder, runner, logger)
 	})
 }
+
 func parseHttpHeader(slice []string) map[string]string {
 	header := map[string]string{}
 	for _, v := range slice {
