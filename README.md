@@ -45,6 +45,7 @@ Options
    --keyFile value               TLS Certificate Key
    --logPrefix value             Setup custom log prefix
    --notifications               enable desktop notifications
+   --httpHeader                  adds a http response header. eg. --httpHeader "Server:gin"
    --help, -h                    show help
    --version, -v                 print the version
 ```

@@ -6,7 +6,7 @@ import (
 
 	"github.com/codegangsta/envy/lib"
 	"github.com/codegangsta/gin/lib"
-	shellwords "github.com/mattn/go-shellwords"
+	"github.com/mattn/go-shellwords"
 	"gopkg.in/urfave/cli.v1"
 
 	"github.com/0xAX/notificator"
@@ -121,6 +121,11 @@ func main() {
 			EnvVar: "GIN_NOTIFICATIONS",
 			Usage:  "Enables desktop notifications",
 		},
+		cli.StringSliceFlag{
+			Name:   "httpHeader",
+			EnvVar: "",
+			Usage:  `each occurrence adds http header to each response. eg. --httpHeader "Server:gin""`,
+		},
 	}
 	app.Commands = []cli.Command{
 		{
@@ -150,6 +155,7 @@ func MainAction(c *cli.Context) {
 	certFile := c.GlobalString("certFile")
 	logPrefix := c.GlobalString("logPrefix")
 	notifications = c.GlobalBool("notifications")
+	httpHeaders := parseHttpHeader(c.GlobalStringSlice("httpHeader"))
 
 	logger.SetPrefix(fmt.Sprintf("[%s] ", logPrefix))
 
@@ -179,11 +185,12 @@ func MainAction(c *cli.Context) {
 	proxy := gin.NewProxy(builder, runner)
 
 	config := &gin.Config{
-		Laddr:    laddr,
-		Port:     port,
-		ProxyTo:  "http://localhost:" + appPort,
-		KeyFile:  keyFile,
-		CertFile: certFile,
+		Laddr:       laddr,
+		Port:        port,
+		ProxyTo:     "http://localhost:" + appPort,
+		KeyFile:     keyFile,
+		CertFile:    certFile,
+		HttpHeaders: httpHeaders,
 	}
 
 	err = proxy.Run(config)
@@ -207,6 +214,17 @@ func MainAction(c *cli.Context) {
 		runner.Kill()
 		build(builder, runner, logger)
 	})
+}
+func parseHttpHeader(slice []string) map[string]string {
+	header := map[string]string{}
+	for _, v := range slice {
+		parts := strings.Split(v, ":")
+		if len(parts) == 2 {
+			header[parts[0]] = parts[1]
+		}
+	}
+
+	return header
 }
 
 func EnvAction(c *cli.Context) {

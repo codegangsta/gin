@@ -17,6 +17,7 @@ type Proxy struct {
 	builder  Builder
 	runner   Runner
 	to       *url.URL
+	headers  map[string]string
 }
 
 func NewProxy(builder Builder, runner Runner) *Proxy {
@@ -35,6 +36,7 @@ func (p *Proxy) Run(config *Config) error {
 	}
 	p.proxy = httputil.NewSingleHostReverseProxy(url)
 	p.to = url
+	p.headers = config.HttpHeaders
 
 	server := http.Server{Handler: http.HandlerFunc(p.defaultHandler)}
 
@@ -67,6 +69,7 @@ func (p *Proxy) Close() error {
 }
 
 func (p *Proxy) defaultHandler(res http.ResponseWriter, req *http.Request) {
+	p.writeHeader(res)
 	errors := p.builder.Errors()
 	if len(errors) > 0 {
 		res.Write([]byte(errors))
@@ -77,6 +80,12 @@ func (p *Proxy) defaultHandler(res http.ResponseWriter, req *http.Request) {
 		} else {
 			p.proxy.ServeHTTP(res, req)
 		}
+	}
+}
+
+func (p *Proxy) writeHeader(res http.ResponseWriter) {
+	for headerKey, headerValue := range p.headers {
+		res.Header().Set(headerKey, headerValue)
 	}
 }
 
