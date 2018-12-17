@@ -9,7 +9,6 @@ import (
 	shellwords "github.com/mattn/go-shellwords"
 	"gopkg.in/urfave/cli.v1"
 
-	"github.com/0xAX/notificator"
 	"log"
 	"os"
 	"os/signal"
@@ -18,6 +17,8 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"github.com/0xAX/notificator"
 )
 
 var (
@@ -169,12 +170,17 @@ func MainAction(c *cli.Context) {
 		logger.Fatal(err)
 	}
 
+	bin := c.GlobalString("bin")
+	if strings.HasPrefix(bin, string(filepath.Separator)) == false {
+		bin = filepath.Join(wd, bin)
+	}
+
 	buildPath := c.GlobalString("build")
 	if buildPath == "" {
 		buildPath = c.GlobalString("path")
 	}
-	builder := gin.NewBuilder(buildPath, c.GlobalString("bin"), c.GlobalBool("godep"), wd, buildArgs)
-	runner := gin.NewRunner(filepath.Join(wd, builder.Binary()), c.Args()...)
+	builder := gin.NewBuilder(buildPath, bin, c.GlobalBool("godep"), wd, buildArgs)
+	runner := gin.NewRunner(bin, c.Args()...)
 	runner.SetWriter(os.Stdout)
 	proxy := gin.NewProxy(builder, runner)
 
