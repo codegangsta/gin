@@ -3,13 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-
-	"github.com/codegangsta/envy/lib"
-	"github.com/codegangsta/gin/lib"
-	shellwords "github.com/mattn/go-shellwords"
-	"gopkg.in/urfave/cli.v1"
-
-	"github.com/0xAX/notificator"
 	"log"
 	"os"
 	"os/signal"
@@ -18,6 +11,13 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"github.com/0xAX/notificator"
+	envy "github.com/codegangsta/envy/lib"
+	shellwords "github.com/mattn/go-shellwords"
+	"github.com/urfave/cli"
+
+	gin "github.com/codegangsta/gin/lib"
 )
 
 var (
