@@ -60,7 +60,7 @@ func main() {
 			Name:   "bin,b",
 			Value:  "gin-bin",
 			EnvVar: "GIN_BIN",
-			Usage:  "name of generated binary file",
+			Usage:  "path to generated binary file, defaults to current working directory",
 		},
 		cli.StringSliceFlag{
 			Name:   "path,t",
@@ -183,7 +183,7 @@ func MainAction(c *cli.Context) {
 	if buildPath == "" {
 		buildPath = watchPaths[0]
 	}
-	builder := gin.NewBuilder(buildPath, bin, c.GlobalBool("godep"), wd, buildArgs)
+	builder := gin.NewBuilder(buildPath, bin, c.GlobalBool("godep"), buildArgs)
 	runner := gin.NewRunner(bin, c.Args()...)
 	runner.SetWriter(os.Stdout)
 	proxy := gin.NewProxy(builder, runner)
