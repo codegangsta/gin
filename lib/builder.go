@@ -3,9 +3,9 @@ package gin
 import (
 	"fmt"
 	"os/exec"
-	"path/filepath"
 	"runtime"
 	"strings"
+	"sync"
 )
 
 type Builder interface {
@@ -19,11 +19,11 @@ type builder struct {
 	binary    string
 	errors    string
 	useGodep  bool
-	wd        string
 	buildArgs []string
+	mutex     *sync.Mutex
 }
 
-func NewBuilder(dir string, bin string, useGodep bool, wd string, buildArgs []string) Builder {
+func NewBuilder(dir string, bin string, useGodep bool, buildArgs []string) Builder {
 	if len(bin) == 0 {
 		bin = "bin"
 	}
@@ -35,7 +35,9 @@ func NewBuilder(dir string, bin string, useGodep bool, wd string, buildArgs []st
 		}
 	}
 
-	return &builder{dir: dir, binary: bin, useGodep: useGodep, wd: wd, buildArgs: buildArgs}
+	m := &sync.Mutex{}
+
+	return &builder{dir: dir, binary: bin, useGodep: useGodep, buildArgs: buildArgs, mutex: m}
 }
 
 func (b *builder) Binary() string {
@@ -47,13 +49,15 @@ func (b *builder) Errors() string {
 }
 
 func (b *builder) Build() error {
-	args := append([]string{"go", "build", "-o", filepath.Join(b.wd, b.binary)}, b.buildArgs...)
+	args := append([]string{"go", "build", "-o", b.binary}, b.buildArgs...)
 
 	var command *exec.Cmd
 	if b.useGodep {
 		args = append([]string{"godep"}, args...)
 	}
+	b.mutex.Lock()
 	command = exec.Command(args[0], args[1:]...)
+	b.mutex.Unlock()
 
 	command.Dir = b.dir
 

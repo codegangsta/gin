@@ -3,21 +3,21 @@ package main
 import (
 	"errors"
 	"fmt"
-
-	"github.com/codegangsta/envy/lib"
-	"github.com/codegangsta/gin/lib"
-	shellwords "github.com/mattn/go-shellwords"
-	"gopkg.in/urfave/cli.v1"
-
-	"github.com/0xAX/notificator"
 	"log"
 	"os"
 	"os/signal"
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
+
+	"github.com/0xAX/notificator"
+	envy "github.com/codegangsta/envy/lib"
+	gin "github.com/ezoic/gin/lib"
+	"github.com/mattn/go-shellwords"
+	"gopkg.in/urfave/cli.v1"
 )
 
 var (
@@ -60,19 +60,19 @@ func main() {
 			Name:   "bin,b",
 			Value:  "gin-bin",
 			EnvVar: "GIN_BIN",
-			Usage:  "name of generated binary file",
+			Usage:  "path to generated binary file, defaults to current working directory",
 		},
-		cli.StringFlag{
+		cli.StringSliceFlag{
 			Name:   "path,t",
-			Value:  ".",
+			Value:  &cli.StringSlice{},
 			EnvVar: "GIN_PATH",
-			Usage:  "Path to watch files from",
+			Usage:  "Paths to watch files from",
 		},
 		cli.StringFlag{
 			Name:   "build,d",
 			Value:  "",
 			EnvVar: "GIN_BUILD",
-			Usage:  "Path to build files from (defaults to same value as --path)",
+			Usage:  "Path to build files from (defaults to first value of --path)",
 		},
 		cli.StringSliceFlag{
 			Name:   "excludeDir,x",
@@ -169,12 +169,22 @@ func MainAction(c *cli.Context) {
 		logger.Fatal(err)
 	}
 
+	bin := c.GlobalString("bin")
+	if strings.HasPrefix(bin, string(filepath.Separator)) == false {
+		bin = filepath.Join(wd, bin)
+	}
+
+	watchPaths := c.GlobalStringSlice("path")
+	if len(watchPaths) == 0 {
+		watchPaths = []string{"."}
+	}
+
 	buildPath := c.GlobalString("build")
 	if buildPath == "" {
-		buildPath = c.GlobalString("path")
+		buildPath = watchPaths[0]
 	}
-	builder := gin.NewBuilder(buildPath, c.GlobalString("bin"), c.GlobalBool("godep"), wd, buildArgs)
-	runner := gin.NewRunner(filepath.Join(wd, builder.Binary()), c.Args()...)
+	builder := gin.NewBuilder(buildPath, bin, c.GlobalBool("godep"), buildArgs)
+	runner := gin.NewRunner(bin, c.Args()...)
 	runner.SetWriter(os.Stdout)
 	proxy := gin.NewProxy(builder, runner)
 
@@ -203,7 +213,7 @@ func MainAction(c *cli.Context) {
 	build(builder, runner, logger)
 
 	// scan for changes
-	scanChanges(c.GlobalString("path"), c.GlobalStringSlice("excludeDir"), all, func(path string) {
+	scanChangesForPaths(watchPaths, c.GlobalStringSlice("excludeDir"), all, func(path string) {
 		runner.Kill()
 		build(builder, runner, logger)
 	})
@@ -259,6 +269,15 @@ func build(builder gin.Builder, runner gin.Runner, logger *log.Logger) {
 }
 
 type scanCallback func(path string)
+
+func scanChangesForPaths(watchPaths, excludeDirs []string, allFiles bool, cb scanCallback) {
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	for _, p := range watchPaths {
+		go scanChanges(p, excludeDirs, allFiles, cb)
+	}
+	wg.Wait()
+}
 
 func scanChanges(watchPath string, excludeDirs []string, allFiles bool, cb scanCallback) {
 	for {
