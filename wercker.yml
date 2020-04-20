@@ -1,4 +1,5 @@
-box: wercker/golang
+box:
+  id: golang
 build:
   steps:
     - wercker/setup-go-workspace:
@@ -7,7 +8,6 @@ build:
     - script:
         name: go get
         code: |
-          go get -v -u github.com/urfave/cli # Workaround for https://github.com/urfave/cli/pull/1056
           go get -v
 
     - script:
