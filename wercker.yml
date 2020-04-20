@@ -7,7 +7,7 @@ build:
     - script:
         name: go get
         code: |
-          go get
+          go get -v
 
     - script:
         name: go build
