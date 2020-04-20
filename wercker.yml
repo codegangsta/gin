@@ -7,7 +7,8 @@ build:
     - script:
         name: go get
         code: |
-          go get -v -u
+          go get -v -u github.com/cpuguy83/go-md2man
+          go get -v
 
     - script:
         name: go build
