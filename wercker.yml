@@ -7,7 +7,7 @@ build:
     - script:
         name: go get
         code: |
-          go get -v -u github.com/cpuguy83/go-md2man
+          go get -v -u github.com/urfave/cli # Workaround for https://github.com/urfave/cli/pull/1056
           go get -v
 
     - script:
