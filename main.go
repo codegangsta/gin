@@ -9,7 +9,6 @@ import (
 	shellwords "github.com/mattn/go-shellwords"
 	"github.com/urfave/cli"
 
-	"github.com/0xAX/notificator"
 	"log"
 	"os"
 	"os/signal"
@@ -18,6 +17,8 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"github.com/0xAX/notificator"
 )
 
 var (
@@ -124,10 +125,11 @@ func main() {
 	}
 	app.Commands = []cli.Command{
 		{
-			Name:      "run",
-			ShortName: "r",
-			Usage:     "Run the gin proxy in the current working directory",
-			Action:    MainAction,
+			Name:            "run",
+			ShortName:       "r",
+			Usage:           "Run the gin proxy in the current working directory",
+			Action:          MainAction,
+			SkipFlagParsing: true,
 		},
 		{
 			Name:      "env",
