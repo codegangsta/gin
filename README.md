@@ -22,7 +22,7 @@ go get github.com/codegangsta/gin
 Then verify that `gin` was installed correctly:
 
 ```shell
-gin -h
+gin help
 ```
 ## Basic usage
 ```shell
