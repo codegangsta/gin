@@ -27,6 +27,10 @@ func NewProxy(builder Builder, runner Runner) *Proxy {
 }
 
 func (p *Proxy) Run(config *Config) error {
+	// set Laddr to localhost if empty to avoid firewall permissions
+	if config.Laddr == ""{
+		config.Laddr = "127.0.0.1"
+	}
 
 	// create our reverse proxy
 	url, err := url.Parse(config.ProxyTo)
