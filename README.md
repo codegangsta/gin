@@ -16,7 +16,7 @@ Assuming you have a working Go environment and `GOPATH/bin` is in your
 `PATH`, `gin` is a breeze to install:
 
 ```shell
-go get github.com/codegangsta/gin
+go install github.com/codegangsta/gin@latest
 ```
 
 Then verify that `gin` was installed correctly:
