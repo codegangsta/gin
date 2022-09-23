@@ -17,6 +17,7 @@ Assuming you have a working Go environment and `GOPATH/bin` is in your
 
 ```shell
 go get github.com/codegangsta/gin
+go install github.com/codegangsta/gin
 ```
 
 Then verify that `gin` was installed correctly:
