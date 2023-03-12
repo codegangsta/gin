@@ -1,1 +1,20 @@
 box: wercker/golang
+build:
+  steps:
+    - wercker/setup-go-workspace:
+        package-dir: github.com/codegangsta/gin
+
+    - script:
+        name: go get
+        code: |
+          go get -v
+
+    - script:
+        name: go build
+        code: |
+          go build ./...
+
+    - script:
+        name: go test
+        code: |
+          go test ./...

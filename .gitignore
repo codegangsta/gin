@@ -2,6 +2,8 @@
 *.o
 *.a
 *.so
+lib/build_success
+gin
 
 # Folders
 _obj
@@ -28,3 +30,6 @@ lib/test_fixtures/build_success/build_success
 *.iml
 *.ipr
 *.iws
+
+# Wercker
+.wercker
