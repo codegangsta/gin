@@ -58,6 +58,9 @@ func (b *builder) Build() error {
 	command.Dir = b.dir
 
 	output, err := command.CombinedOutput()
+	if err != nil {
+		return err
+	}
 
 	if command.ProcessState.Success() {
 		b.errors = ""
@@ -69,5 +72,5 @@ func (b *builder) Build() error {
 		return fmt.Errorf(b.errors)
 	}
 
-	return err
+	return nil
 }
