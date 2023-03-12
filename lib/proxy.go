@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"io"
+	"log"
 	"net"
 	"net/http"
 	"net/http/httputil"
@@ -84,7 +85,7 @@ func proxyWebsocket(w http.ResponseWriter, r *http.Request, host *url.URL) {
 	d, err := net.Dial("tcp", host.Host)
 	if err != nil {
 		http.Error(w, "Error contacting backend server.", 500)
-		fmt.Errorf("Error dialing websocket backend %s: %v", host, err)
+		log.Printf("Error dialing websocket backend %s: %v", host, err)
 		return
 	}
 	hj, ok := w.(http.Hijacker)
@@ -94,7 +95,7 @@ func proxyWebsocket(w http.ResponseWriter, r *http.Request, host *url.URL) {
 	}
 	nc, _, err := hj.Hijack()
 	if err != nil {
-		fmt.Errorf("Hijack error: %v", err)
+		log.Printf("Hijack error: %v", err)
 		return
 	}
 	defer nc.Close()
@@ -102,7 +103,7 @@ func proxyWebsocket(w http.ResponseWriter, r *http.Request, host *url.URL) {
 
 	err = r.Write(d)
 	if err != nil {
-		fmt.Errorf("Error copying request to target: %v", err)
+		log.Printf("Error copying request to target: %v", err)
 		return
 	}
 
