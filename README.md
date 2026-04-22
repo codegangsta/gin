@@ -8,7 +8,7 @@ detects a change. Your app will be restarted the next time it receives an
 HTTP request.
 
 `gin` adheres to the "silence is golden" principle, so it will only complain
-if there was a compiler error or if you succesfully compile after an error.
+if there was a compiler error or if you successfully compile after an error.
 
 ## Installation
 
